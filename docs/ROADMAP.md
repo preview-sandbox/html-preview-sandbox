@@ -68,21 +68,26 @@ These improve adoption and maintainability.
 
 2. **Improve CI signal**
 
-   Add:
+   Done: Dependabot (`.github/dependabot.yml`) and CodeQL static analysis
+   (`.github/workflows/codeql.yml`). The main CI workflow already runs a
+   `pack:dry` job.
 
-   - dependency review or Dependabot;
-   - CodeQL or equivalent static analysis;
-   - a release dry-run job;
-   - browser matrix expansion if the compatibility target requires it.
+   Still to add:
+
+   - browser matrix expansion (Firefox/WebKit) once the compatibility target is
+     confirmed and those engines are verified to pass.
 
 3. **Package release workflow**
 
-   Decide and document:
+   Done: tag-triggered publish workflow with npm provenance and a tag/version
+   consistency check (`.github/workflows/release.yml`); `CHANGELOG.md` in
+   Keep a Changelog format.
 
-   - npm provenance;
-   - changesets or release-please;
-   - versioning policy before `1.0`;
-   - whether examples should be published only in the repository or also as a demo site.
+   Still to decide:
+
+   - whether to adopt changesets/release-please for automated version bumps, or
+     keep manual CHANGELOG + tag (manual is fine while single-maintainer);
+   - whether the Playground ships only in the repo or also as a hosted demo site.
 
 ## Priority 2
 

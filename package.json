@@ -36,7 +36,8 @@
     "README.md",
     "LICENSE",
     "THREAT_MODEL.md",
-    "SECURITY.md"
+    "SECURITY.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsup",
