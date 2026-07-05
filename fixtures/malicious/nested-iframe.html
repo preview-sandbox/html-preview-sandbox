@@ -1,0 +1,9 @@
+<!doctype html>
+<html>
+  <body>
+    <h1>Nested browsing content</h1>
+    <!-- A nested iframe pointing at an attacker origin, and a srcdoc iframe carrying script -->
+    <iframe src="https://attacker.example/frame"></iframe>
+    <iframe srcdoc="&lt;script&gt;parent.postMessage(document.cookie,'*')&lt;/script&gt;"></iframe>
+  </body>
+</html>

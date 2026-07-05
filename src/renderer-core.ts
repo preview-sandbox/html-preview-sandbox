@@ -1,6 +1,15 @@
 import { BRIDGE_CSP_VIOLATION, BRIDGE_OPEN_EXTERNAL } from './bridge.js';
 import { DEFAULT_SANDBOX_TOKENS, getSandboxAttribute, isAllowedExternalUrl } from './policy.js';
-import type { OpenExternalSource, PreviewHandle, PreviewInput, PreviewOptions, RenderResult } from './types.js';
+import { ERROR_CODES, PreviewError } from './errors.js';
+import type { OpenExternalSource, PreviewErrorShape, PreviewHandle, PreviewInput, PreviewOptions, RenderResult } from './types.js';
+
+function toMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function toPreviewError(error: unknown): PreviewErrorShape {
+  return error instanceof PreviewError ? error : new PreviewError(ERROR_CODES.RENDER_FAILED, toMessage(error), error);
+}
 
 type OpenExternalContext = { source: OpenExternalSource };
 type CreateHtmlDocument = (input: PreviewInput, options?: PreviewOptions) => Promise<RenderResult>;
@@ -74,7 +83,7 @@ export function createPreviewFactory(createHtmlDocument: CreateHtmlDocument) {
       try {
         return currentOptions.allowExternalUrl(url, context) === true;
       } catch (error) {
-        currentOptions.logger?.warn?.(`External URL policy threw: ${error?.message || error}`);
+        currentOptions.logger?.warn?.(`External URL policy threw: ${toMessage(error)}`);
         return false;
       }
     }
@@ -98,7 +107,7 @@ export function createPreviewFactory(createHtmlDocument: CreateHtmlDocument) {
           target.srcdoc = result.html;
           return result;
         } catch (error) {
-          currentOptions.onError?.(error);
+          currentOptions.onError?.(toPreviewError(error));
           throw error;
         }
       },

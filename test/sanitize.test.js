@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { sanitizeHtml } from '../dist/index.js';
+import { sanitizeHtml, buildCsp } from '../dist/index.js';
 
 function fixture(path) {
   return readFileSync(new URL(`../fixtures/${path}`, import.meta.url), 'utf8');
@@ -74,4 +74,39 @@ test('sanitizeHtml neutralizes mXSS mutation vectors', () => {
   const result = sanitizeHtml(fixture('malicious/mxss-mutation.html'));
   assert.doesNotMatch(result.html, /onerror/i);
   assert.doesNotMatch(result.html, /<img[^>]+src=x/i);
+});
+
+test('sanitizeHtml removes formaction override targets', () => {
+  const result = sanitizeHtml(fixture('malicious/formaction-override.html'));
+  assert.doesNotMatch(result.html, /formaction/i);
+  assert.doesNotMatch(result.html, /attacker\.example/i);
+});
+
+test('sanitizeHtml removes nested iframes and their srcdoc payloads', () => {
+  const result = sanitizeHtml(fixture('malicious/nested-iframe.html'));
+  assert.doesNotMatch(result.html, /<iframe/i);
+  assert.doesNotMatch(result.html, /attacker\.example/i);
+});
+
+test('sanitizeHtml strips obfuscated javascript: schemes (entities, whitespace, case)', () => {
+  const result = sanitizeHtml(fixture('malicious/encoded-protocol.html'));
+  // No decoded javascript: scheme should survive on any href
+  assert.doesNotMatch(result.html, /href\s*=\s*["'][^"']*javascript:/i);
+  assert.doesNotMatch(result.html, /alert\(/i);
+});
+
+test('sanitizeHtml strips srcset candidates with irregular whitespace and descriptors', () => {
+  const result = sanitizeHtml('<img srcset="  https://safe.test/a.png   1x ,\tjavascript:alert(1)\n2x ">');
+  assert.doesNotMatch(result.html, /javascript:/i);
+  assert.doesNotMatch(result.html, /srcset=/i);
+});
+
+test('CSS url() exfiltration: sanitizer preserves styling, strict CSP blocks the host', () => {
+  // Layering check: the sanitizer keeps the style (legitimate interactivity),
+  // and the strict CSP is what actually blocks the exfiltration request.
+  const result = sanitizeHtml(fixture('malicious/css-url-exfil.html'));
+  assert.match(result.html, /background/i); // style preserved
+  const csp = buildCsp('strict');
+  // img-src (which governs CSS url() image loads) has no wildcard host under strict
+  assert.doesNotMatch(csp, /img-src[^;]*https:/);
 });

@@ -95,6 +95,7 @@ External links are also fail-closed. The default protocol allowlist is `http:`, 
 - [Integration Guide](docs/INTEGRATION.md)
 - [Security Model](docs/SECURITY_MODEL.md)
 - [Sanitizer Decision](docs/SANITIZER_DECISION.md)
+- [Browser Support](docs/BROWSER_SUPPORT.md)
 - [Project Structure](docs/PROJECT_STRUCTURE.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Threat Model](THREAT_MODEL.md)

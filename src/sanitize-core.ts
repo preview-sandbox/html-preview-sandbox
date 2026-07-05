@@ -210,7 +210,7 @@ function applyProjectHooks(purifier: any, report: SanitizeReport, options: Sanit
   // because detaching mid-walk breaks DOMPurify's tree traversal.
   const pendingRemoval = new WeakSet<Element>();
 
-  purifier.addHook('uponSanitizeElement', (node, data) => {
+  purifier.addHook('uponSanitizeElement', (node: Element, data: { tagName?: string }) => {
     const tag = normalizeName(data.tagName || node.nodeName);
     if (DISALLOWED_TAGS.includes(tag)) reportTag(report, tag);
     if (isDangerousMeta(node)) reportAttr(report, 'meta', 'http-equiv');
@@ -222,13 +222,13 @@ function applyProjectHooks(purifier: any, report: SanitizeReport, options: Sanit
     }
   });
 
-  purifier.addHook('afterSanitizeElements', (node) => {
+  purifier.addHook('afterSanitizeElements', (node: Element) => {
     if (isDangerousMeta(node) || pendingRemoval.has(node)) {
       node.remove();
     }
   });
 
-  purifier.addHook('afterSanitizeAttributes', (node) => {
+  purifier.addHook('afterSanitizeAttributes', (node: Element) => {
     const tag = normalizeName(node.nodeName);
     if (!node.attributes) return;
 

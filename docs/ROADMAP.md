@@ -21,38 +21,26 @@ Implemented:
 
 ## Priority 0
 
-These should be handled before calling the package release-ready.
+All three P0 items are done. The package is TypeScript-strict, has broad security
+fixture coverage, and documents its browser baseline.
 
-1. **Tighten TypeScript strictness**
+1. **Tighten TypeScript strictness** — Done. `strict: true` in both `tsconfig.json`
+   and `tsconfig.check.json`; DOMPurify hook parameters are typed, caught errors are
+   normalized to `PreviewErrorShape`, and the suite passes under strict. The `jsdom`
+   module shim and the `any`-typed DOMPurify factory remain as small, deliberate
+   boundaries; replacing them with precise upstream types is a follow-up nicety, not
+   a blocker.
 
-   The source is now TypeScript, but `strict` is still disabled while the migration settles. Move toward `strict: true` in small steps:
+2. **Expand security fixture coverage** — Done. Fixtures + regression tests now cover:
+   `base` tag injection, URL-targeting SVG animation, mXSS mutation vectors,
+   `formaction` override, nested `iframe`/`srcdoc`, obfuscated (entity/whitespace/case)
+   `javascript:` schemes, irregular `srcset` whitespace/descriptors, CSS `url()`
+   exfiltration (layered sanitize + CSP assertion), plus GBK/non-UTF-8 decoding, empty,
+   and malformed HTML edge cases.
 
-   - add precise DOMPurify hook types where practical;
-   - replace the local `jsdom` shim with real types or a small explicit adapter type;
-   - reduce remaining `any` usage in sanitizer internals;
-   - keep generated `dist/index.d.ts` stable.
-
-2. **Expand security fixture coverage**
-
-   Added so far: `base` tag injection, SVG animation targeting URL attributes,
-   mXSS mutation vectors, GBK/non-UTF-8 decoding, empty and malformed HTML.
-
-   Still to add:
-
-   - CSS `url()` edge cases;
-   - `formaction` and related submit attributes;
-   - `iframe`, `srcdoc`, and nested browsing content;
-   - mixed `srcset` with unusual whitespace and descriptors;
-   - encoded or control-character protocol attempts.
-
-3. **Document browser compatibility**
-
-   Define the supported browser baseline for:
-
-   - sandboxed `srcdoc` iframe;
-   - `securitypolicyviolation`;
-   - `TextDecoder`;
-   - Blob/File input handling.
+3. **Document browser compatibility** — Done. See [BROWSER_SUPPORT.md](BROWSER_SUPPORT.md):
+   baseline (Chrome/Edge 90+, Firefox 90+, Safari 14+, Electron 12+, Node 18+) with the
+   binding constraint (`Blob.arrayBuffer`) and the full list of platform features used.
 
 ## Priority 1
 

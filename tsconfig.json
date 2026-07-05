@@ -7,7 +7,7 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "outDir": "dist",
-    "strict": false,
+    "strict": true,
     "ignoreDeprecations": "6.0",
     "skipLibCheck": true
   },
