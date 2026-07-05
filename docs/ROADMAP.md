@@ -48,11 +48,14 @@ These improve adoption and maintainability.
 
 1. **Add framework examples**
 
-   Keep the package single-package, but add repository examples for:
+   Keep the package single-package, with repository examples:
 
-   - React;
-   - vanilla Web component wrapper;
-   - Electron host navigation interception.
+   - Done: vanilla Web Component wrapper (`examples/web-component/`, covered by
+     Playwright smoke tests).
+   - Done: Electron host navigation interception (`examples/electron/`, reference
+     code — runs with a separately installed `electron`).
+   - Still to add: a React example (needs a small build step; deferred so the repo
+     stays bundler-free for now).
 
 2. **Improve CI signal**
 

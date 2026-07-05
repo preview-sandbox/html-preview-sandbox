@@ -81,6 +81,8 @@ preview.notifyNavigationAttempt(url);
 
 The preview will restore the last generated `srcdoc` and route the URL through the same external-link allowlist.
 
+See [`examples/electron/`](../examples/electron/) for a complete main-process interception example (`did-start-navigation` / `will-frame-navigate` → IPC → `notifyNavigationAttempt`), and [`examples/web-component/`](../examples/web-component/) for a `<safe-html-preview>` custom-element wrapper.
+
 ## Presets
 
 Presets are layered by exfiltration capability, not by which resources they load:

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>html-preview-sandbox Web Component Example</title>
+    <style>
+      html, body { height: 100%; margin: 0; font-family: system-ui, sans-serif; }
+      body { display: grid; grid-template-rows: auto 1fr; color: #17202a; }
+      header { padding: 16px 20px; border-bottom: 1px solid #dce3ed; }
+      safe-html-preview { height: 100%; }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "dompurify": "../../node_modules/dompurify/dist/purify.es.mjs"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      <strong>Web component example</strong> — <code>&lt;safe-html-preview&gt;</code>
+    </header>
+    <safe-html-preview id="preview" preset="strict"></safe-html-preview>
+
+    <script type="module">
+      import './safe-html-preview.js';
+
+      const el = document.querySelector('#preview');
+      window.externalEvents = [];
+      el.addEventListener('openexternal', (event) => window.externalEvents.push(event.detail));
+      el.source = '<h1>Hello from the sandbox</h1><p><a href="https://example.com">External link</a></p><script>console.log("script runs in the sandbox")<\/script>';
+    </script>
+  </body>
+</html>

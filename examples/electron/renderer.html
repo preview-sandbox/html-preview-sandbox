@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>html-preview-sandbox Electron Example</title>
+    <style>
+      html, body { height: 100%; margin: 0; font-family: system-ui, sans-serif; }
+      body { display: grid; grid-template-rows: auto 1fr; }
+      header { padding: 12px 16px; border-bottom: 1px solid #dce3ed; }
+      #preview { min-height: 0; }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "dompurify": "../../node_modules/dompurify/dist/purify.es.mjs"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header><strong>Electron example</strong> — main-process navigation interception</header>
+    <div id="preview"></div>
+
+    <script type="module">
+      import { createPreview } from '../../dist/index.browser.js';
+
+      const preview = createPreview(document.querySelector('#preview'), {
+        csp: 'strict',
+        // Host decides how approved external URLs open: the system browser.
+        onOpenExternal: (url) => window.previewHost.openExternal(url),
+      });
+
+      // The main process forwards iframe navigation URLs here. The core library
+      // re-mounts the last trusted document and runs the URL through the same
+      // external-link allowlist that feeds onOpenExternal.
+      window.previewHost.onNavigationAttempt((url) => {
+        preview.notifyNavigationAttempt(url);
+      });
+
+      preview.render(`
+        <h1>Interactive report</h1>
+        <p><a href="https://example.com/report">External link (opens in system browser)</a></p>
+        <p><button onclick="location.href='https://evil.example/steal'">Try to navigate away</button></p>
+        <script>console.log('runs inside the sandbox')<\/script>
+      `);
+    </script>
+  </body>
+</html>
