@@ -1,0 +1,7 @@
+<!doctype html>
+<html>
+  <body onload="alert('auto')">
+    <img src="x" onerror="alert('xss')">
+    <button onclick="document.body.dataset.ok='1'">Allowed active click</button>
+  </body>
+</html>

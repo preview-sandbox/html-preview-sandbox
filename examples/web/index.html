@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>html-preview-sandbox Web Example</title>
+    <style>
+      html, body { height: 100%; margin: 0; font-family: system-ui, sans-serif; }
+      body { display: grid; grid-template-rows: auto 1fr; color: #17202a; }
+      header { padding: 16px 20px; border-bottom: 1px solid #dce3ed; }
+      main { display: grid; grid-template-columns: 360px 1fr; min-height: 0; }
+      textarea { width: 100%; height: 100%; border: 0; border-right: 1px solid #dce3ed; padding: 16px; resize: none; font-family: ui-monospace, monospace; }
+      #preview { min-height: 0; }
+      button { margin-top: 10px; padding: 8px 12px; }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "dompurify": "../../node_modules/dompurify/dist/purify.es.mjs"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      <strong>Web example</strong>
+      <button id="render">Render</button>
+    </header>
+    <main>
+      <textarea id="html"><h1>Hello from the sandbox</h1><p><a href="https://example.com">External link</a></p><script>console.log('script still runs inside the sandbox')</script></textarea>
+      <div id="preview"></div>
+    </main>
+    <script type="module">
+      import { createPreview } from '../../dist/index.browser.js';
+
+      window.externalEvents = [];
+      const preview = createPreview(document.querySelector('#preview'), {
+        onOpenExternal(url, context) {
+          window.externalEvents.push({ url, ...context });
+        },
+      });
+      window.preview = preview;
+
+      async function render() {
+        await preview.render(document.querySelector('#html').value);
+      }
+
+      document.querySelector('#render').addEventListener('click', render);
+      render();
+    </script>
+  </body>
+</html>

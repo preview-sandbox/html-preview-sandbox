@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowJs": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist",
+    "strict": false,
+    "ignoreDeprecations": "6.0",
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts"]
+}

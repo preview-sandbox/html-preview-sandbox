@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>CDN chart report</title>
+    <!-- Whitelisted CDN script host: must be allowed under the strict preset -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <h1>Quarterly revenue</h1>
+    <canvas id="chart" width="400" height="200"></canvas>
+    <script>
+      // Relies on inline script + a CDN-loaded library, the common shape of an AI report.
+      window.addEventListener('load', () => {
+        const ctx = document.getElementById('chart');
+        if (window.Chart && ctx) {
+          new window.Chart(ctx, {
+            type: 'bar',
+            data: { labels: ['Q1', 'Q2', 'Q3'], datasets: [{ data: [12, 19, 7] }] },
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

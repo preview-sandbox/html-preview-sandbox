@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>html-preview-sandbox Playground</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "dompurify": "../node_modules/dompurify/dist/purify.es.mjs"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">HPS</span>
+        <div>
+          <h1>html-preview-sandbox</h1>
+          <p>Preview pipeline workbench</p>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="segmented" aria-label="CSP preset">
+          <label><input type="radio" name="preset" value="strict" checked><span>strict</span></label>
+          <label><input type="radio" name="preset" value="balanced"><span>balanced</span></label>
+          <label><input type="radio" name="preset" value="offline"><span>offline</span></label>
+        </div>
+        <button id="render" class="primary">Render</button>
+      </div>
+    </header>
+
+    <main class="workbench">
+      <section class="panel editor-panel" aria-labelledby="editor-title">
+        <div class="panel-head">
+          <div>
+            <h2 id="editor-title">Input</h2>
+            <p id="input-meta">0 bytes</p>
+          </div>
+          <div class="sample-strip" aria-label="Samples">
+            <button data-sample="report">report</button>
+            <button data-sample="exfiltrate">network</button>
+            <button data-sample="navigation">nav</button>
+            <button data-sample="svg">svg</button>
+            <button data-sample="srcset">srcset</button>
+          </div>
+        </div>
+        <textarea id="source" spellcheck="false" aria-label="HTML source"></textarea>
+      </section>
+
+      <section class="panel preview-panel" aria-labelledby="preview-title">
+        <div class="panel-head">
+          <div>
+            <h2 id="preview-title">Preview</h2>
+            <p id="preview-meta">waiting</p>
+          </div>
+          <div class="policy-controls">
+            <label><input type="checkbox" id="protocol-https" checked> https</label>
+            <label><input type="checkbox" id="protocol-mail" checked> mail/tel</label>
+            <input id="host-rule" type="text" placeholder="host suffix">
+          </div>
+        </div>
+        <div id="preview"></div>
+      </section>
+
+      <aside class="panel inspector-panel" aria-labelledby="inspector-title">
+        <div class="panel-head">
+          <div>
+            <h2 id="inspector-title">Inspector</h2>
+            <p id="run-state">idle</p>
+          </div>
+          <button id="clear-events">Clear</button>
+        </div>
+
+        <div class="policy-rail" aria-label="Policy summary">
+          <div class="rail-item">
+            <span class="rail-key">sanitize</span>
+            <strong id="sanitize-count">0</strong>
+          </div>
+          <div class="rail-item">
+            <span class="rail-key">csp</span>
+            <strong id="csp-count">0</strong>
+          </div>
+          <div class="rail-item">
+            <span class="rail-key">external</span>
+            <strong id="external-count">0</strong>
+          </div>
+          <div class="rail-item">
+            <span class="rail-key">sandbox</span>
+            <strong>opaque</strong>
+          </div>
+        </div>
+
+        <div class="event-stack">
+          <section class="event-block">
+            <h3>Sanitize report</h3>
+            <div id="sanitize-log" class="event-list empty">No render yet.</div>
+          </section>
+          <section class="event-block">
+            <h3>CSP violations</h3>
+            <div id="csp-log" class="event-list empty">No violations yet.</div>
+          </section>
+          <section class="event-block">
+            <h3>External requests</h3>
+            <div id="external-log" class="event-list empty">No requests yet.</div>
+          </section>
+          <section class="event-block">
+            <h3>Current policy</h3>
+            <div id="policy-log" class="event-list"></div>
+          </section>
+        </div>
+      </aside>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

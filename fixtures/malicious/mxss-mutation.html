@@ -1,0 +1,9 @@
+<!doctype html>
+<html>
+  <body>
+    <!-- mXSS-style vectors: markup that can re-parse into script after DOM mutation -->
+    <p><svg></p><style><a title="</style><img src=x onerror=alert(1)>">
+    <math><mtext><table><mglyph><style><img src=x onerror=alert(2)></style>
+    <noscript><p title="</noscript><img src=x onerror=alert(3)>">
+  </body>
+</html>
