@@ -123,11 +123,16 @@ These are useful but not release blockers.
 
 4. **`jsdom` dependency footprint**
 
-   `jsdom` is currently a hard dependency so the Node sanitizer path works out of
-   the box. It is not bundled into the browser build, but it still lands in the
-   dependency tree for browser-only consumers. Consider moving it to an optional
-   peer dependency or a dynamic import in the Node entrypoint, with a clear error
-   when a Node caller has not installed it.
+   Verified: `jsdom` is **not** referenced in the browser build (`dist/index.browser.js`,
+   0 occurrences), so it never reaches the final app bundle — a bundler resolving the
+   `browser` export condition never imports it. The only remaining cost is disk
+   footprint in `node_modules` for browser-only consumers who install via npm.
+
+   This is an install-hygiene improvement, not a runtime one. The candidate fix
+   (move `jsdom` to an optional peer dependency + lazily initialize it in the Node
+   entrypoint via `createRequire`, keeping the sync `sanitizeHtml` API and throwing a
+   clear error when absent) changes install semantics and touches the security-critical
+   sanitizer, so it should go through the normal review loop rather than a rushed change.
 
 ## Open Questions
 
