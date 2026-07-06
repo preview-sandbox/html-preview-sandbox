@@ -81,6 +81,11 @@ const externalCount = document.querySelector('#external-count');
 const httpsProtocol = document.querySelector('#protocol-https');
 const mailProtocol = document.querySelector('#protocol-mail');
 const hostRule = document.querySelector('#host-rule');
+const shareButton = document.querySelector('#share');
+const sanitizedView = document.querySelector('#sanitized-view');
+const editorPanel = document.querySelector('.editor-panel');
+
+let lastHtml = '';
 
 source.value = samples.report;
 
@@ -225,10 +230,81 @@ async function render() {
   const started = performance.now();
   const result = await preview.render(source.value);
   const elapsed = Math.max(1, Math.round(performance.now() - started));
+  lastHtml = result.html;
   previewMeta.textContent = `${result.encoding} / ${elapsed}ms`;
   runState.textContent = 'rendered';
   renderPolicy();
+  updateView();
   if (lastSanitizeReport) renderSanitize(lastSanitizeReport);
+}
+
+function currentView() {
+  return document.querySelector('input[name="view"]:checked').value;
+}
+
+// Toggle between the rendered sandbox preview and the exact HTML the pipeline
+// produced — so users can inspect what was actually sanitized/injected, not just
+// the rendered result.
+function updateView() {
+  const showHtml = currentView() === 'html';
+  sanitizedView.hidden = !showHtml;
+  previewHost.hidden = showHtml;
+  if (showHtml) {
+    sanitizedView.querySelector('code').textContent = lastHtml || 'Render first to see the sanitized document.';
+  }
+}
+
+// --- Shareable URL: encode the input + preset into the location hash ---
+function encodeState(state) {
+  const bytes = new TextEncoder().encode(JSON.stringify(state));
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+function decodeState(encoded) {
+  const binary = atob(encoded);
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+async function share() {
+  const encoded = encodeState({ preset: currentPreset(), src: source.value });
+  const url = `${location.origin}${location.pathname}#s=${encoded}`;
+  history.replaceState(null, '', `#s=${encoded}`);
+  try {
+    await navigator.clipboard.writeText(url);
+    shareButton.textContent = 'Copied!';
+  } catch {
+    shareButton.textContent = 'URL updated';
+  }
+  setTimeout(() => { shareButton.textContent = 'Share'; }, 1500);
+}
+
+function restoreFromHash() {
+  const match = location.hash.match(/[#&]s=([^&]+)/);
+  if (!match) return false;
+  try {
+    const state = decodeState(match[1]);
+    if (typeof state.src === 'string') source.value = state.src;
+    const presetInput = document.querySelector(`input[name="preset"][value="${state.preset}"]`);
+    if (presetInput) presetInput.checked = true;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// --- Drag & drop an HTML file into the editor ---
+function readDroppedFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    source.value = String(reader.result || '');
+    inputMeta.textContent = `${bytesOf(source.value).toLocaleString()} bytes`;
+    render();
+  };
+  reader.readAsText(file);
 }
 
 function selectSample(name) {
@@ -256,4 +332,23 @@ for (const button of document.querySelectorAll('[data-sample]')) {
   button.addEventListener('click', () => selectSample(button.dataset.sample));
 }
 
-selectSample('report');
+for (const input of document.querySelectorAll('input[name="view"]')) {
+  input.addEventListener('change', updateView);
+}
+
+shareButton.addEventListener('click', share);
+
+for (const type of ['dragenter', 'dragover']) {
+  editorPanel.addEventListener(type, (event) => { event.preventDefault(); editorPanel.classList.add('dropping'); });
+}
+for (const type of ['dragleave', 'drop']) {
+  editorPanel.addEventListener(type, (event) => { event.preventDefault(); editorPanel.classList.remove('dropping'); });
+}
+editorPanel.addEventListener('drop', (event) => readDroppedFile(event.dataTransfer?.files?.[0]));
+
+// Restore a shared link if present, otherwise start from the report sample.
+if (restoreFromHash()) {
+  render();
+} else {
+  selectSample('report');
+}

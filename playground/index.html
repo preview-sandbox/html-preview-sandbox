@@ -29,6 +29,7 @@
           <label><input type="radio" name="preset" value="balanced"><span>balanced</span></label>
           <label><input type="radio" name="preset" value="offline"><span>offline</span></label>
         </div>
+        <button id="share" title="Copy a shareable link to this input + preset">Share</button>
         <button id="render" class="primary">Render</button>
       </div>
     </header>
@@ -57,13 +58,22 @@
             <h2 id="preview-title">Preview</h2>
             <p id="preview-meta">waiting</p>
           </div>
-          <div class="policy-controls">
-            <label><input type="checkbox" id="protocol-https" checked> https</label>
-            <label><input type="checkbox" id="protocol-mail" checked> mail/tel</label>
-            <input id="host-rule" type="text" placeholder="host suffix">
+          <div class="preview-controls">
+            <div class="segmented view-toggle" aria-label="View mode">
+              <label><input type="radio" name="view" value="preview" checked><span>preview</span></label>
+              <label><input type="radio" name="view" value="html"><span>sanitized HTML</span></label>
+            </div>
+            <div class="policy-controls">
+              <label><input type="checkbox" id="protocol-https" checked> https</label>
+              <label><input type="checkbox" id="protocol-mail" checked> mail/tel</label>
+              <input id="host-rule" type="text" placeholder="host suffix">
+            </div>
           </div>
         </div>
-        <div id="preview"></div>
+        <div class="preview-body">
+          <div id="preview"></div>
+          <pre id="sanitized-view" class="sanitized-view" hidden><code></code></pre>
+        </div>
       </section>
 
       <aside class="panel inspector-panel" aria-labelledby="inspector-title">

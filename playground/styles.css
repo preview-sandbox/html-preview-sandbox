@@ -223,6 +223,50 @@ p {
   height: 100%;
 }
 
+#share {
+  padding: 0 12px;
+  color: var(--muted);
+}
+
+.preview-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.view-toggle {
+  grid-template-columns: repeat(2, minmax(84px, 1fr));
+}
+
+.preview-body {
+  min-height: 0;
+  height: 100%;
+}
+
+.sanitized-view {
+  margin: 0;
+  height: 100%;
+  overflow: auto;
+  padding: 14px;
+  background: #fbfcfe;
+}
+
+.sanitized-view code {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.editor-panel.dropping #source {
+  background: #eef4ff;
+  outline: 2px dashed var(--blue);
+  outline-offset: -6px;
+}
+
 .policy-controls {
   flex-wrap: wrap;
   justify-content: flex-end;
