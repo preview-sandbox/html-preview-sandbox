@@ -2,6 +2,9 @@
 
 // Electron integration example (reference code — requires `electron` to run).
 //
+// Uses the .cjs extension so it is CommonJS regardless of the repository's
+// "type": "module" — Electron's main and preload scripts are CommonJS here.
+//
 // This demonstrates the one defense a pure Web host cannot provide: intercepting
 // JavaScript-driven `window.location` navigation out of the sandboxed iframe.
 //
@@ -19,14 +22,12 @@ function createWindow() {
     width: 1000,
     height: 720,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
     },
   });
-
-  const previewFrame = () => win.webContents.mainFrame.frames[0];
 
   // Only care about the preview iframe (a direct child of the main frame),
   // not nested sub-frames loading their own resources.
@@ -38,7 +39,7 @@ function createWindow() {
     win.webContents.send('preview:navigation-attempt', url);
   };
 
-  win.webContents.on('did-start-navigation', (event, url, isInPlace, isMainFrame, processId, routingId) => {
+  win.webContents.on('did-start-navigation', (_event, url, isInPlace, isMainFrame, processId, routingId) => {
     if (isMainFrame || isInPlace) return;
     let frame = null;
     try { frame = webFrameMain.fromId(processId, routingId); } catch (_) { /* ignore */ }

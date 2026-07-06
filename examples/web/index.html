@@ -3,16 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>html-preview-sandbox Web Example</title>
-    <style>
-      html, body { height: 100%; margin: 0; font-family: system-ui, sans-serif; }
-      body { display: grid; grid-template-rows: auto 1fr; color: #17202a; }
-      header { padding: 16px 20px; border-bottom: 1px solid #dce3ed; }
-      main { display: grid; grid-template-columns: 360px 1fr; min-height: 0; }
-      textarea { width: 100%; height: 100%; border: 0; border-right: 1px solid #dce3ed; padding: 16px; resize: none; font-family: ui-monospace, monospace; }
-      #preview { min-height: 0; }
-      button { margin-top: 10px; padding: 8px 12px; }
-    </style>
+    <title>html-preview-sandbox — Web example</title>
     <script type="importmap">
       {
         "imports": {
@@ -20,32 +11,181 @@
         }
       }
     </script>
+    <style>
+      :root {
+        --ink: #14213d;
+        --muted: #657083;
+        --line: #dce3ed;
+        --paper: #f4f6f9;
+        --surface: #fff;
+        --signal: #1f8a70;
+        --blue: #3566a5;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: var(--paper);
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px 18px;
+        background: #fbfcf7;
+        border-bottom: 1px solid var(--line);
+      }
+      .brand { display: flex; align-items: center; gap: 12px; }
+      .brand-mark {
+        width: 40px; height: 40px;
+        display: grid; place-items: center;
+        border-radius: 7px;
+        background: var(--ink); color: #fff;
+        font: 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      .brand h1 { margin: 0; font-size: 16px; }
+      .brand p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+      #render {
+        min-height: 36px;
+        padding: 0 18px;
+        border: 1px solid var(--signal);
+        border-radius: 7px;
+        background: var(--signal);
+        color: #fff;
+        font: inherit;
+        font-weight: 650;
+        cursor: pointer;
+      }
+      #render:hover { background: #1a7460; }
+
+      main {
+        display: grid;
+        grid-template-columns: minmax(300px, 0.85fr) 1.15fr;
+        gap: 12px;
+        min-height: 0;
+        padding: 12px;
+      }
+      .pane {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        min-height: 0;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: var(--surface);
+        overflow: hidden;
+      }
+      .pane-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 9px 13px;
+        border-bottom: 1px solid var(--line);
+        background: #fafbfc;
+      }
+      .pane-head h2 { margin: 0; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
+      .pane-head .meta { font-size: 11px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+      #html {
+        width: 100%; height: 100%;
+        border: 0; resize: none;
+        padding: 14px;
+        background: #fbfcfe;
+        color: var(--ink);
+        font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      #html:focus-visible { outline: 2px solid rgba(31,138,112,.3); outline-offset: -2px; }
+
+      .preview-wrap { min-height: 0; display: grid; grid-template-rows: 1fr auto; }
+      #preview { min-height: 0; background: #fff; }
+      #external {
+        padding: 8px 13px;
+        border-top: 1px solid var(--line);
+        background: #fafbfc;
+        font-size: 11px;
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        min-height: 34px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      #external .tag { color: var(--blue); }
+
+      @media (max-width: 720px) {
+        main { grid-template-columns: 1fr; }
+        .pane { min-height: 320px; }
+      }
+    </style>
   </head>
   <body>
     <header>
-      <strong>Web example</strong>
+      <div class="brand">
+        <span class="brand-mark">HPS</span>
+        <div>
+          <h1>Web example</h1>
+          <p>String input rendered through the sandboxed pipeline</p>
+        </div>
+      </div>
       <button id="render">Render</button>
     </header>
+
     <main>
-      <textarea id="html"><h1>Hello from the sandbox</h1><p><a href="https://example.com">External link</a></p><script>console.log('script still runs inside the sandbox')</script></textarea>
-      <div id="preview"></div>
+      <section class="pane">
+        <div class="pane-head">
+          <h2>HTML source</h2>
+          <span class="meta" id="size">0 bytes</span>
+        </div>
+        <textarea id="html" spellcheck="false"><h1>Hello from the sandbox</h1>
+<p>Scripts run, but the document can't touch this page.</p>
+<p><a href="https://example.com">External link</a> (routed to the host, not opened here)</p>
+<script>console.log('script still runs inside the sandbox')</script></textarea>
+      </section>
+
+      <section class="pane">
+        <div class="pane-head">
+          <h2>Sandboxed preview</h2>
+          <span class="meta">opaque origin</span>
+        </div>
+        <div class="preview-wrap">
+          <div id="preview"></div>
+          <div id="external"><span class="tag">external →</span> <span id="external-text">no link clicked yet</span></div>
+        </div>
+      </section>
     </main>
+
     <script type="module">
       import { createPreview } from '../../dist/index.browser.js';
+
+      const source = document.querySelector('#html');
+      const size = document.querySelector('#size');
+      const externalText = document.querySelector('#external-text');
 
       window.externalEvents = [];
       const preview = createPreview(document.querySelector('#preview'), {
         onOpenExternal(url, context) {
           window.externalEvents.push({ url, ...context });
+          externalText.textContent = `${context.source}: ${url}`;
         },
       });
       window.preview = preview;
 
+      function updateSize() {
+        size.textContent = `${new TextEncoder().encode(source.value).byteLength} bytes`;
+      }
+
       async function render() {
-        await preview.render(document.querySelector('#html').value);
+        updateSize();
+        await preview.render(source.value);
       }
 
       document.querySelector('#render').addEventListener('click', render);
+      source.addEventListener('input', updateSize);
       render();
     </script>
   </body>

@@ -1,7 +1,8 @@
 'use strict';
 
 // Bridges main-process navigation signals and external-open requests to the
-// renderer under contextIsolation.
+// renderer under contextIsolation. Uses .cjs so it is CommonJS regardless of the
+// repository's "type": "module".
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('previewHost', {

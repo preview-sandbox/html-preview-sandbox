@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>html-preview-sandbox — File upload example</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "dompurify": "../../node_modules/dompurify/dist/purify.es.mjs"
+        }
+      }
+    </script>
+    <style>
+      html, body { height: 100%; margin: 0; font-family: system-ui, sans-serif; color: #17202a; background: #fff; }
+      body { display: grid; grid-template-rows: auto auto 1fr; }
+      header { padding: 14px 18px; border-bottom: 1px solid #dce3ed; }
+      header strong { font-size: 15px; }
+      header p { margin: 4px 0 0; color: #5b6b7c; font-size: 13px; }
+      #drop {
+        margin: 14px 18px 8px; padding: 18px; border: 2px dashed #b9c6d6; border-radius: 10px;
+        text-align: center; color: #5b6b7c; font-size: 13px; transition: background .15s, border-color .15s;
+      }
+      #drop.dragover { background: #eef5ff; border-color: #2d7ff9; color: #17202a; }
+      #drop input { display: block; margin: 8px auto 0; }
+      main { display: grid; grid-template-columns: 1fr 300px; min-height: 0; border-top: 1px solid #eef2f7; }
+      #preview { min-height: 0; border-right: 1px solid #dce3ed; }
+      .info { padding: 12px 16px; overflow-y: auto; font-size: 13px; }
+      .info h3 { margin: 0 0 6px; font-size: 12px; color: #5b6b7c; text-transform: uppercase; letter-spacing: .03em; }
+      .row { padding: 6px 0; border-bottom: 1px dashed #eef2f7; }
+      .k { color: #7f8c9a; } .v { font-family: ui-monospace, monospace; }
+      #error { display: none; margin-top: 10px; padding: 10px; border-radius: 8px; background: #fdecea; color: #b71c1c; font-size: 12px; }
+      #error.show { display: block; }
+      ul { margin: 4px 0 0; padding-left: 16px; } li { font-family: ui-monospace, monospace; font-size: 11px; color: #7f8c9a; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>File upload preview</strong>
+      <p>Select or drop an <code>.html</code> file — the library decodes and renders it via <code>preview.render(file)</code>. Real-world shape for attachment / upload / netdisk previews.</p>
+    </header>
+
+    <div id="drop">
+      Drop an HTML file here, or
+      <input id="file" type="file" accept=".html,.htm,text/html">
+    </div>
+
+    <main>
+      <div id="preview"></div>
+      <div class="info">
+        <h3>Result</h3>
+        <div class="row"><span class="k">File:</span> <span class="v" id="name">—</span></div>
+        <div class="row"><span class="k">Detected encoding:</span> <span class="v" id="encoding">—</span></div>
+        <div class="row"><span class="k">Sanitizer removals:</span> <span class="v" id="removed">—</span></div>
+        <ul id="removed-list"></ul>
+        <div id="error"></div>
+
+        <h3 style="margin-top:16px">Demo controls</h3>
+        <div class="row">
+          <label><span class="k">maxBytes:</span>
+            <input id="maxbytes" type="number" value="5242880" style="width:110px"> </label>
+          <div style="color:#9aa7b4;font-size:11px;margin-top:4px">Lower this and upload a bigger file to see the OVERSIZED error state.</div>
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

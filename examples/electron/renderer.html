@@ -2,13 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>html-preview-sandbox Electron Example</title>
-    <style>
-      html, body { height: 100%; margin: 0; font-family: system-ui, sans-serif; }
-      body { display: grid; grid-template-rows: auto 1fr; }
-      header { padding: 12px 16px; border-bottom: 1px solid #dce3ed; }
-      #preview { min-height: 0; }
-    </style>
+    <title>html-preview-sandbox — Electron example</title>
     <script type="importmap">
       {
         "imports": {
@@ -16,32 +10,107 @@
         }
       }
     </script>
+    <style>
+      :root { --ink:#14213d; --muted:#657083; --line:#dce3ed; --paper:#f4f6f9; --surface:#fff; --blue:#3566a5; --warn:#b7791f; }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body { display: grid; grid-template-rows: auto auto 1fr; font-family: Inter, system-ui, -apple-system, sans-serif; color: var(--ink); background: var(--paper); }
+
+      header { display:flex; align-items:center; gap:12px; padding:12px 18px; background:#fbfcf7; border-bottom:1px solid var(--line); }
+      .brand-mark { width:40px; height:40px; display:grid; place-items:center; border-radius:7px; background:var(--ink); color:#fff; font:12px/1 ui-monospace, Menlo, monospace; }
+      header h1 { margin:0; font-size:16px; }
+      header p { margin:2px 0 0; color:var(--muted); font-size:12px; }
+
+      .explain { padding:10px 18px; background:#fff8ec; border-bottom:1px solid #f0e2c8; font-size:13px; color:#5b4a1f; line-height:1.5; }
+      .explain b { color:var(--ink); }
+      .explain code { background:#fff; padding:1px 5px; border-radius:4px; }
+
+      main { display:grid; grid-template-columns: 1.3fr 0.7fr; gap:12px; min-height:0; padding:12px; }
+      .pane { display:grid; grid-template-rows:auto 1fr; min-height:0; border:1px solid var(--line); border-radius:9px; background:var(--surface); overflow:hidden; }
+      .pane-head { padding:9px 13px; border-bottom:1px solid var(--line); background:#fafbfc; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); }
+      #preview { min-height:0; background:#fff; }
+
+      #log { padding:10px 12px; overflow:auto; display:flex; flex-direction:column; gap:8px; }
+      #log .empty { color:var(--muted); font-size:12px; }
+      .entry { padding:8px 10px; border:1px solid var(--line); border-radius:7px; font-size:12px; line-height:1.4; background:#fbfcfe; }
+      .entry .k { font-weight:700; }
+      .entry.ext .k { color:var(--blue); }
+      .entry.block .k { color:var(--warn); }
+      .entry code { font-family:ui-monospace, Menlo, monospace; overflow-wrap:anywhere; color:var(--muted); }
+    </style>
   </head>
   <body>
-    <header><strong>Electron example</strong> — main-process navigation interception</header>
-    <div id="preview"></div>
+    <header>
+      <span class="brand-mark">HPS</span>
+      <div>
+        <h1>Electron example — main-process navigation guard</h1>
+        <p>Catching iframe self-navigation from the main process</p>
+      </div>
+    </header>
+
+    <div class="explain">
+      A sandboxed iframe can still try to navigate <b>itself</b> away with
+      <code>window.location = "…"</code> — replacing your preview with, say, a phishing page.
+      Pure Web can't reliably stop this. Electron's main process sees every frame navigation,
+      cancels it, and the library re-mounts the original document. Try the two buttons in the
+      preview and watch the log →
+    </div>
+
+    <main>
+      <section class="pane">
+        <div class="pane-head">Sandboxed preview</div>
+        <div id="preview"></div>
+      </section>
+      <aside class="pane">
+        <div class="pane-head">Host event log</div>
+        <div id="log"><span class="empty">Click a button in the preview…</span></div>
+      </aside>
+    </main>
 
     <script type="module">
       import { createPreview } from '../../dist/index.browser.js';
 
+      const log = document.querySelector('#log');
+      function addEntry(kind, label, url) {
+        const empty = log.querySelector('.empty');
+        if (empty) empty.remove();
+        const el = document.createElement('div');
+        el.className = `entry ${kind}`;
+        el.innerHTML = `<span class="k">${label}</span><br><code>${url}</code>`;
+        log.prepend(el);
+      }
+
+      // window.previewHost is exposed by the Electron preload. Guarded so this page
+      // also opens in a plain browser (where the main-process interception is absent).
+      const host = window.previewHost;
+
       const preview = createPreview(document.querySelector('#preview'), {
         csp: 'strict',
-        // Host decides how approved external URLs open: the system browser.
-        onOpenExternal: (url) => window.previewHost.openExternal(url),
+        onOpenExternal: (url) => {
+          addEntry('ext', '🔗 External link → system browser', url);
+          if (host) host.openExternal(url);
+          else window.open(url, '_blank', 'noopener,noreferrer');
+        },
       });
 
-      // The main process forwards iframe navigation URLs here. The core library
-      // re-mounts the last trusted document and runs the URL through the same
-      // external-link allowlist that feeds onOpenExternal.
-      window.previewHost.onNavigationAttempt((url) => {
-        preview.notifyNavigationAttempt(url);
-      });
+      // The MAIN PROCESS forwards any iframe self-navigation URL here. The library
+      // re-mounts the last trusted document and routes the URL through the same
+      // external-link allowlist — the interception a pure Web host can't do.
+      if (host) {
+        host.onNavigationAttempt((url) => {
+          addEntry('block', '🛡️ Navigation intercepted → original restored', url);
+          preview.notifyNavigationAttempt(url);
+        });
+      }
 
       preview.render(`
-        <h1>Interactive report</h1>
-        <p><a href="https://example.com/report">External link (opens in system browser)</a></p>
-        <p><button onclick="location.href='https://evil.example/steal'">Try to navigate away</button></p>
-        <script>console.log('runs inside the sandbox')<\/script>
+        <div style="font-family:system-ui;padding:22px;color:#17202a">
+          <h1>Interactive report</h1>
+          <p>This document runs in the sandbox. Two things it might try:</p>
+          <p><a href="https://example.com/report">Open an external link</a> — routed to your system browser.</p>
+          <p><button style="padding:8px 14px;font:inherit" onclick="location.href='https://evil.example/phishing'">Hijack the preview</button> — a self-navigation the main process intercepts.</p>
+          <script>console.log('script runs inside the sandbox')<\/script>
+        </div>
       `);
     </script>
   </body>
