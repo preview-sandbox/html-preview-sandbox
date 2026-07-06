@@ -45,3 +45,6 @@ Do **not** open a public issue for a vulnerability. Follow the process in [SECUR
 - Keep changes focused; unrelated refactors belong in separate PRs.
 - Match the existing TypeScript style and module layout.
 - Update relevant docs in the same PR as the behavior change.
+
+Branch naming, the PR flow, versioning, and the release process are documented in
+[docs/BRANCHING.md](docs/BRANCHING.md).

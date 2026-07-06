@@ -26,8 +26,10 @@ Initial release.
   - `balanced` — opens `https:` images/media and `connect-src https:` for
     semi-trusted content.
 - DOMPurify-backed sanitizer with project hooks for URL-scheme filtering, meta
-  refresh / user CSP removal, base-tag removal, and URL-targeting SVG animation
-  removal, plus a removal report surfaced through `onSanitize`.
+  refresh / user CSP removal, base-tag removal, URL-targeting SVG animation removal,
+  and connection/prefetch resource-hint `<link>` removal
+  (`preconnect`/`dns-prefetch`/`prefetch`/`prerender`), plus a removal report
+  surfaced through `onSanitize`.
 - Injected iframe bridge forwarding link clicks, `window.open`, and
   `securitypolicyviolation` reports to the host.
 - Fail-closed external URL handling: protocol allowlist plus optional
@@ -39,5 +41,5 @@ Initial release.
 - Node and Playwright test suites, security regression fixtures, threat model,
   security policy, and contributor documentation.
 
-[Unreleased]: https://github.com/html-preview-sandbox/html-preview-sandbox/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/html-preview-sandbox/html-preview-sandbox/releases/tag/v0.1.0
+[Unreleased]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/preview-sandbox/html-preview-sandbox/releases/tag/v0.1.0

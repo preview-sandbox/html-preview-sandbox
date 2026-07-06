@@ -30,8 +30,9 @@ src/policy.ts          CSP, sandbox, and external URL policies
 src/bridge.ts          Injected iframe bridge script
 src/document.ts        Node document assembly pipeline
 src/document.browser.ts Browser document assembly pipeline
-src/renderer.ts        Default renderer export
-src/renderer.browser.ts Browser iframe renderer
+src/renderer-core.ts   Shared renderer factory (iframe lifecycle, bridge, nav)
+src/renderer.ts        Default renderer export (injects Node document pipeline)
+src/renderer.browser.ts Browser renderer export (injects browser document pipeline)
 src/scrollbar.ts       Optional scrollbar style injection
 src/errors.ts          Error codes and PreviewError
 ```
@@ -55,21 +56,27 @@ Browser hosts usually call `createPreview()`. Node usage should call `createHtml
 
 ## Build Outputs
 
-`npm run build` generates:
+`npm run build` runs two steps: `tsup` bundles the ESM JavaScript, then `tsc`
+emits the type declarations (tsup's dts pass is disabled because it injects a
+deprecated `baseUrl` that TypeScript 6 rejects). It generates:
 
 ```text
-dist/index.js
-dist/index.browser.js
-dist/index.d.ts
+dist/index.js            (tsup, Node/default)
+dist/index.browser.js    (tsup, browser)
+dist/*.d.ts              (tsc, per-module declarations; index.d.ts is the public entry)
 dist/*.map
 ```
+
+Consumers reach the API through the `.` and `./browser` export conditions; the
+per-module `.d.ts` files support the type graph but are not deep-importable by
+package name.
 
 Tests and local examples intentionally run against `dist` after build. This keeps development checks close to the published package behavior.
 
 ## Test Layers
 
 - `test/*.test.js`: Node tests for decoding, CSP, sanitizer behavior, package metadata, and document assembly.
-- `test/browser/*.spec.js`: Playwright tests for browser iframe behavior, bridge forwarding, host navigation handling, and external URL policy.
+- `test/browser/*.spec.js`: Playwright tests for browser iframe behavior, bridge forwarding, host navigation handling, external URL policy, and the example/Playground UIs (file upload, Web Component, sanitized-HTML view, shareable URL, drag-and-drop).
 - `fixtures/`: stable inputs for benign, malicious, and edge cases.
 
 ## Local Workbench
@@ -77,13 +84,16 @@ Tests and local examples intentionally run against `dist` after build. This keep
 The Playground is a repository tool, not a published runtime API. It runs against `dist/index.browser.js` and exposes:
 
 - sample payloads;
+- drag-and-drop of a local HTML file into the editor;
 - CSP preset switching;
 - external protocol controls;
 - host suffix URL filtering;
 - sanitizer removal reports;
 - CSP violation reports;
 - external request reports;
-- current policy summary.
+- current policy summary;
+- a "sanitized HTML" view of the exact pipeline output;
+- a shareable URL that encodes the input + preset.
 
 Run it with:
 
@@ -105,6 +115,7 @@ README.md
 LICENSE
 THREAT_MODEL.md
 SECURITY.md
+CHANGELOG.md
 ```
 
 Examples, fixtures, tests, and Playground stay in the repository for development and review, but they are not included in the package tarball.

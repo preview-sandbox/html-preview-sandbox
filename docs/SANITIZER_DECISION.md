@@ -49,7 +49,7 @@ That is not the best fit for this project's first release because:
 - The main rendering target is a sandboxed browser iframe, not a server-rendered CMS field.
 - Browser DOM parsing behavior is central to the security model.
 - The project needs a browser-native path without making the browser build feel like an adaptation of a server sanitizer.
-- The previously used desktop implementation already demonstrated the `sanitize-html` route, but the open source project is intentionally a fresh, more general design.
+- A server-oriented sanitizer route was considered, but this project prioritizes browser-fidelity preview behavior and a fresh, general-purpose design.
 
 As of July 5, 2026, the original `apostrophecms/sanitize-html` GitHub repository is archived and points to a monorepo. That does not make the package unusable by itself, but it weakens the maintenance signal for choosing it as the core of a new security-oriented package.
 

@@ -1,8 +1,8 @@
 # html-preview-sandbox
 
-A sandboxed preview pipeline for untrusted HTML.
+Safely preview untrusted, interactive HTML in a sandboxed iframe.
 
-`html-preview-sandbox` helps apps preview interactive HTML files and AI-generated HTML reports without giving them full browser power. It combines DOMPurify-backed sanitization, CSP presets, sandboxed iframes, external-link handling, and host callbacks.
+`html-preview-sandbox` helps applications render untrusted HTML files, user uploads, and AI-generated reports without giving them full browser power. It combines DOMPurify sanitization, CSP presets, opaque-origin sandboxed iframes, external-link mediation, and host callbacks.
 
 ## Install
 
@@ -33,7 +33,8 @@ await preview.render(fileOrHtmlString);
 
 ## Runtime Entrypoints
 
-The published package exposes separate Node and browser builds through package export conditions:
+The package is **ESM-only** and requires Node 18+ for the Node/default entrypoint.
+It exposes separate Node and browser builds through package export conditions:
 
 - Node/default import: uses DOMPurify with jsdom.
 - Browser import: uses DOMPurify with the real browser `window`.
@@ -93,10 +94,12 @@ External links are also fail-closed. The default protocol allowlist is `http:`, 
 ## Documentation
 
 - [Integration Guide](docs/INTEGRATION.md)
+- [使用文档(中文)](docs/使用文档.zh-CN.md)
 - [Security Model](docs/SECURITY_MODEL.md)
 - [Sanitizer Decision](docs/SANITIZER_DECISION.md)
 - [Browser Support](docs/BROWSER_SUPPORT.md)
 - [Project Structure](docs/PROJECT_STRUCTURE.md)
+- [Branching & Releases](docs/BRANCHING.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Threat Model](THREAT_MODEL.md)
 - [Security Policy](SECURITY.md)
@@ -124,7 +127,7 @@ npm run test:browser
 npm run build
 ```
 
-The type check validates the TypeScript source and generated public API surface. The Node test suite covers decoding, CSP generation, injection order, protocol filtering, and sanitization reports. The Playwright suite verifies real browser iframe sandboxing and external-link bridging.
+The type check validates the TypeScript source and generated public API surface. The Node test suite covers decoding, CSP generation, injection order, protocol filtering, and sanitization reports. The Playwright suite verifies real browser iframe sandboxing and external-link bridging, plus the Web example, file-upload example, Web Component, and Playground behaviors.
 
 In CI, install the Playwright browser before `npm run test:browser`:
 
@@ -149,7 +152,11 @@ npm run serve
 
 Then visit `http://localhost:4173/playground/`.
 
-The Playground is a three-panel workbench with HTML input, sandboxed preview, and an inspector for sanitizer removals, CSP violations, external requests, and current policy. It also includes sample payloads plus controls for CSP preset, external protocols, and host suffix filtering.
+The Playground is a three-panel workbench with HTML input, sandboxed preview, and an inspector for sanitizer removals, CSP violations, external requests, and current policy. It also includes sample payloads plus controls for CSP preset, external protocols, and host suffix filtering. You can drag an HTML file onto the editor, toggle a "sanitized HTML" view to inspect the exact document the pipeline produced, and use Share to encode the input + preset into a shareable URL.
+
+### Hosted Playground
+
+`.github/workflows/pages.yml` deploys the Playground to GitHub Pages on every push to `main`. The workflow builds the library and assembles a site that mirrors the Playground's relative imports, so no code changes are needed. One-time setup: in the repository, go to **Settings → Pages → Source** and select **GitHub Actions**. After the first successful run the Playground is available at `https://preview-sandbox.github.io/html-preview-sandbox/playground/`.
 
 ## Status
 

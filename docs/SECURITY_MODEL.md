@@ -63,13 +63,31 @@ Hosts can narrow this list with `externalProtocols`. They can also provide `allo
 - `allowExternalUrl` is fail-closed when provided: thrown errors and non-`true` results block the URL.
 - Pure Web hosts cannot fully stop `window.location` navigation; stronger host adapters are required for that layer.
 
+## Known Trade-offs and Hardening Notes
+
+These are deliberate design choices, not defects. They are low-risk given the
+surrounding layers, but are documented so the trade-off is explicit and revisitable.
+
+- **`frame-src blob:`** — allows script inside the sandbox to create `blob:` sub-iframes.
+  Low risk: `<iframe>` markup is stripped by the sanitizer, and any script-created
+  nested frame inherits the sandbox flags (no `allow-same-origin`), so it stays opaque
+  and cannot reach the host. Could be tightened to `frame-src 'none'` if no dependency
+  needs blob frames.
+- **`allow-popups-to-escape-sandbox`** — in the default sandbox. In practice `window.open`
+  is overridden by the bridge and routed to `onOpenExternal`, so a real escaping popup is
+  hard to trigger from content. Kept as defense-in-depth belt so an approved "open in new
+  tab" reaches the host decision rather than opening a sandboxed blank page.
+- **Bridge `postMessage` uses `targetOrigin: '*'`** — the payload is a URL or a CSP
+  violation report (not secret), and the host receiver verifies `event.source ===
+  iframe.contentWindow` before acting. Acceptable given the sandboxed opaque origin.
+
 ## Why DOMPurify Is Not Enough
 
 DOMPurify is a sanitizer. This project uses it as one layer, then adds CSP, sandboxing, link handling, and host integration. Users should not extract the sanitizer configuration and treat it as the whole security story.
 
 ## Playground Coverage
 
-The Playground is an inspection surface for this model. It renders through the built browser bundle and exposes sanitizer removals, CSP violations, external request forwarding, CSP presets, protocol filtering, and host suffix URL policy in one place.
+The Playground is an inspection surface for this model. It renders through the built browser bundle and exposes sanitizer removals, CSP violations, external request forwarding, CSP presets, protocol filtering, and host suffix URL policy in one place. A "sanitized HTML" view also shows the exact document the pipeline produced, so the injected CSP meta, bridge, and stripped content can be inspected directly.
 
 ## DOMPurify vs sanitize-html
 

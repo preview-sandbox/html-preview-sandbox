@@ -1,0 +1,64 @@
+name: Deploy Playground
+
+# Publishes the Playground to GitHub Pages on every push to main.
+# The Playground imports ../dist/index.browser.js and ../node_modules/dompurify,
+# so the site mirrors those relative paths — no code changes needed.
+# One-time setup: repo Settings → Pages → Source = "GitHub Actions".
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build library
+        run: npm run build
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site/dist _site/node_modules/dompurify/dist
+          cp -r playground _site/playground
+          cp dist/index.browser.js dist/index.browser.js.map _site/dist/
+          cp node_modules/dompurify/dist/purify.es.mjs _site/node_modules/dompurify/dist/
+          # Redirect the site root to the Playground.
+          printf '<!doctype html><meta http-equiv="refresh" content="0; url=./playground/">' > _site/index.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -83,6 +83,14 @@ The preview will restore the last generated `srcdoc` and route the URL through t
 
 See [`examples/electron/`](../examples/electron/) for a complete main-process interception example (`did-start-navigation` / `will-frame-navigate` → IPC → `notifyNavigationAttempt`), and [`examples/web-component/`](../examples/web-component/) for a `<safe-html-preview>` custom-element wrapper.
 
+## Examples
+
+- [`examples/web/`](../examples/web/) — minimal string-input integration.
+- [`examples/file-upload/`](../examples/file-upload/) — `<input type=file>` + drag & drop, `render(file)`, showing detected encoding, sanitizer removals, and the `OVERSIZED` error state. The shape for attachment / upload / netdisk previews.
+- [`examples/web-component/`](../examples/web-component/) — `<safe-html-preview>` custom element (framework-agnostic).
+- [`examples/electron/`](../examples/electron/) — desktop host with main-process navigation interception.
+- [`examples/node-create-document/`](../examples/node-create-document/) — `createHtmlDocument` (full pipeline, no iframe) for self-managed webviews, SSR pre-processing, or CLI conversion.
+
 ## Presets
 
 Presets are layered by exfiltration capability, not by which resources they load:

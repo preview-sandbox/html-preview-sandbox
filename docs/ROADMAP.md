@@ -17,7 +17,17 @@ Implemented:
 - external protocol and custom URL policy;
 - high-risk sandbox token filtering;
 - local Playground inspection workbench;
-- Node tests, Playwright tests, CI, audit script, and pack dry-run.
+- Node tests, Playwright tests, CI, audit script, and pack dry-run;
+- Biome linting (gated in CI) and formatter config.
+
+## Housekeeping
+
+- **One-time Biome format pass.** The formatter is configured (`biome.json`) and
+  available via `npm run format`, but existing files have not been reformatted, to
+  keep substantive diffs clean. Apply `biome format --write` in a dedicated
+  `chore: apply Biome formatting` commit (no logic changes). Only after that pass,
+  (re)add a `format:check` script (`biome format .`) and gate it in CI — it is
+  intentionally omitted now so no shipped script fails against the un-formatted tree.
 
 ## Priority 0
 
@@ -46,16 +56,22 @@ fixture coverage, and documents its browser baseline.
 
 These improve adoption and maintainability.
 
-1. **Add framework examples**
+1. **Integration examples**
 
    Keep the package single-package, with repository examples:
 
-   - Done: vanilla Web Component wrapper (`examples/web-component/`, covered by
-     Playwright smoke tests).
+   - Done: string input (`examples/web/`).
+   - Done: File/Blob input via `<input type=file>` + drag & drop, with encoding /
+     sanitize-report / `OVERSIZED` error display (`examples/file-upload/`, covered by
+     Playwright smoke tests). Covers the attachment / upload / netdisk shape.
+   - Done: vanilla Web Component wrapper (`examples/web-component/`, smoke-tested).
    - Done: Electron host navigation interception (`examples/electron/`, reference
      code — runs with a separately installed `electron`).
-   - Still to add: a React example (needs a small build step; deferred so the repo
-     stays bundler-free for now).
+   - Done: Node `createHtmlDocument` (full pipeline, no iframe) for self-managed
+     webviews / SSR / CLI (`examples/node-create-document/`).
+   - Deferred: React/Vue examples (need a build step; Web Component already covers
+     the framework-agnostic entry) and a multiple-previews-per-page snippet. Low
+     priority — these are capability showcases, not core adoption entry points.
 
 2. **Improve CI signal**
 
@@ -77,8 +93,7 @@ These improve adoption and maintainability.
    Still to decide:
 
    - whether to adopt changesets/release-please for automated version bumps, or
-     keep manual CHANGELOG + tag (manual is fine while single-maintainer);
-   - whether the Playground ships only in the repo or also as a hosted demo site.
+     keep manual CHANGELOG + tag (manual is fine while single-maintainer).
 
 ## Priority 2
 
@@ -86,13 +101,17 @@ These are useful but not release blockers.
 
 1. **Playground polish**
 
-   Potential additions:
+   Done:
 
-   - file upload and drag-and-drop;
-   - side-by-side sanitized HTML output;
+   - drag-and-drop an HTML file into the editor;
+   - "sanitized HTML" view — toggle to inspect the exact document the pipeline produced;
+   - shareable URL — the input + preset are encoded into the location hash and restored on load.
+
+   Still potential:
+
    - copyable reports;
    - saved sample presets;
-   - visual diff for removed tags and attributes.
+   - visual before/after diff for removed tags and attributes.
 
 2. **Policy presets**
 
@@ -125,10 +144,30 @@ These are useful but not release blockers.
    clear error when absent) changes install semantics and touches the security-critical
    sanitizer, so it should go through the normal review loop rather than a rushed change.
 
+5. **`EMPTY_AFTER_SANITIZE` behavior needs a proper definition (do not rush)**
+
+   DOMPurify's `WHOLE_DOCUMENT` mode wraps any input into an `html/head/body` shell,
+   so `sanitized.html.trim()` in `document.ts` is never blank and the
+   `EMPTY_AFTER_SANITIZE` error never fires. Content that sanitizes to nothing renders
+   as a blank preview instead.
+
+   The naive fix — `if (sanitized.report.strippedAll) throw ...` — is **wrong**, because
+   `strippedAll` currently keys off text content and a small tag set, so it would
+   misfire on content that is visually/interactively meaningful but text-free
+   (e.g. only `<canvas>`, `<svg>`, `<img>`, or `<input>`). Before changing behavior,
+   the "empty" concept must be split and each case decided explicitly:
+
+   - empty input;
+   - sanitized to no *visible* content;
+   - sanitized to no *interactive* content;
+   - only form/canvas/svg/media remain (no text).
+
+   Then decide per case whether to throw `EMPTY_AFTER_SANITIZE` or simply signal the
+   host via `sanitizeReport.strippedAll`. This is a dedicated design PR, not an inline fix.
+
 ## Open Questions
 
 - Should the package expose a lower-level policy builder for hosts that already own iframe rendering?
-- Should the Playground become a hosted demo, or stay repository-only?
 - Should Node sanitization remain a first-class path, or only support tests and document generation?
 
 ## Resolved
@@ -137,6 +176,9 @@ These are useful but not release blockers.
   exfiltration capability: `strict` keeps `img-src`/`media-src` at `blob: data:`
   (an image URL is an attacker-readable exfiltration channel). Remote `https:`
   images/media live in `balanced` only. `offline` has no network at all.
+- **Should the Playground become a hosted demo?** Yes. `.github/workflows/pages.yml`
+  deploys it to GitHub Pages on every push to `main` (assembling a site that mirrors
+  the Playground's relative imports). Requires enabling Pages (Source = GitHub Actions).
 - **Renderer duplication.** The Node and browser renderers now share
   `renderer-core.ts` via a factory; the entrypoints only inject their
   `createHtmlDocument` implementation.
