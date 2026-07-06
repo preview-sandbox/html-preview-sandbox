@@ -10,7 +10,10 @@ export default defineConfig([
     target: 'node18',
     sourcemap: true,
     clean: true,
-    dts: true,
+    // Declarations are emitted by `tsc` (see the build script), not tsup: tsup's
+    // dts pass injects a deprecated `baseUrl` that TypeScript 6 rejects. Using tsc
+    // with our own tsconfig avoids it and keeps the config free of ignoreDeprecations.
+    dts: false,
     external: ['dompurify', 'jsdom'],
   },
   {

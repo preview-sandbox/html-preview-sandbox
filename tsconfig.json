@@ -6,9 +6,9 @@
     "allowJs": false,
     "declaration": true,
     "emitDeclarationOnly": true,
+    "rootDir": "src",
     "outDir": "dist",
     "strict": true,
-    "ignoreDeprecations": "6.0",
     "skipLibCheck": true
   },
   "include": ["src/**/*.ts"]
