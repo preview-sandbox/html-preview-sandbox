@@ -48,12 +48,17 @@ export async function normalizeInput(input: PreviewInput, options: { maxBytes?: 
     return { html: input, encoding: 'utf-8', usedBom: false, size };
   }
 
-  let bytes;
+  let bytes: Uint8Array;
   if (input instanceof Uint8Array) {
     bytes = input;
   } else if (input instanceof ArrayBuffer) {
     bytes = new Uint8Array(input);
   } else if (typeof Blob !== 'undefined' && input instanceof Blob) {
+    // Check Blob.size before reading — arrayBuffer() would materialize the whole
+    // file into memory first, so an oversized Blob must be rejected up front.
+    if (input.size > maxBytes) {
+      throw new PreviewError(ERROR_CODES.OVERSIZED, `HTML input exceeds ${maxBytes} bytes`);
+    }
     bytes = new Uint8Array(await input.arrayBuffer());
   } else {
     throw new PreviewError(ERROR_CODES.DECODE_FAILED, 'Unsupported preview input');

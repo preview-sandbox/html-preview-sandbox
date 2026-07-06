@@ -8,15 +8,36 @@ function fixture(path) {
 }
 
 test('sanitizeHtml removes meta refresh', () => {
-  const result = sanitizeHtml('<meta http-equiv="refresh" content="0; url=https://evil.test"><p>ok</p>');
+  const result = sanitizeHtml(fixture('malicious/meta-refresh.html'));
   assert.doesNotMatch(result.html, /http-equiv="refresh"/i);
+  assert.doesNotMatch(result.html, /attacker\.example/i);
   assert.equal(result.report.removedAttributes.some((item) => item.tag === 'meta'), true);
 });
 
 test('sanitizeHtml removes dangerous URL schemes in fallback mode', () => {
-  const result = sanitizeHtml('<a href="javascript:alert(1)">bad</a>');
+  const result = sanitizeHtml(fixture('malicious/javascript-url.html'));
   assert.doesNotMatch(result.html, /javascript:/i);
   assert.equal(result.report.removedSchemes.some((item) => item.scheme === 'javascript:'), true);
+});
+
+test('sanitizeHtml neutralizes namespace-confusion mXSS vectors', () => {
+  const result = sanitizeHtml(fixture('malicious/mxss-namespace.html'));
+  assert.doesNotMatch(result.html, /onerror/i);
+  assert.doesNotMatch(result.html, /<img[^>]+src=x/i);
+});
+
+test('sanitizeHtml drops connection/prefetch resource-hint links but keeps CSP-governed ones', () => {
+  const result = sanitizeHtml(fixture('malicious/link-resource-hints.html'));
+  // Connection/prefetch hints removed regardless of CSP.
+  assert.doesNotMatch(result.html, /rel="?preconnect/i);
+  assert.doesNotMatch(result.html, /rel="?dns-prefetch/i);
+  assert.doesNotMatch(result.html, /rel="?prefetch/i);
+  assert.doesNotMatch(result.html, /rel="?prerender/i);
+  assert.doesNotMatch(result.html, /attacker\.example/i);
+  // Legitimate, CSP-governed links survive.
+  assert.match(result.html, /rel="?stylesheet/i);
+  assert.match(result.html, /rel="?preload/i);
+  assert.match(result.html, /rel="?icon/i);
 });
 
 test('sanitizeHtml can remove scripts when configured', () => {

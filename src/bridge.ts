@@ -44,7 +44,13 @@ function bridgeScript(): string {
       return;
     }
 
-    if (/^javascript:/i.test(resolved)) return;
+    // Defense in depth: even if a relaxed custom sanitizer let a javascript: URL
+    // through, the bridge must not allow the default click to run it.
+    if (/^javascript:/i.test(resolved)) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
 
     try {
       const url = new URL(resolved);

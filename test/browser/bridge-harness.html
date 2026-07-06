@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Bridge isolation harness</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "dompurify": "../../node_modules/dompurify/dist/purify.es.mjs"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <!--
+      Isolates the injected bridge script from the sanitizer and CSP layers so a
+      javascript: link can actually reach the bridge. In the real pipeline the
+      sanitizer strips javascript: before the bridge ever sees it; this harness
+      verifies the bridge's own defense-in-depth preventDefault.
+    -->
+    <div id="host"></div>
+    <script type="module">
+      import { injectBridgeScript } from '../../dist/index.browser.js';
+
+      // Mount a sandboxed iframe (allow-scripts, no CSP) whose document contains a
+      // javascript: link plus the bridge. If the bridge fails to preventDefault,
+      // clicking the link executes the payload, which posts 'JS_RAN' to the parent.
+      window.mountJavascriptLink = () => {
+        const inner = `<!doctype html><html><body>
+          <a id="js-link" href="javascript:parent.postMessage('JS_RAN','*')">click</a>
+        </body></html>`;
+        const iframe = document.createElement('iframe');
+        iframe.setAttribute('sandbox', 'allow-scripts');
+        iframe.setAttribute('title', 'bridge harness frame');
+        iframe.srcdoc = injectBridgeScript(inner);
+        document.getElementById('host').appendChild(iframe);
+        return true;
+      };
+    </script>
+  </body>
+</html>

@@ -204,6 +204,20 @@ function isUrlTargetingAnimation(node: Element): boolean {
   return URL_TARGET_ATTRS.has(target);
 }
 
+// Resource-hint <link rel> values that can open a connection or fetch a resource
+// outside consistent CSP governance (browsers vary on whether preconnect/dns-prefetch
+// are subject to CSP). They are stripped at the sanitizer layer rather than relying on
+// CSP alone. Stylesheet/preload/modulepreload/icon remain allowed — those are governed
+// by the matching CSP directive (style-src / script-src / img-src).
+const BLOCKED_LINK_RELS = new Set(['dns-prefetch', 'preconnect', 'prefetch', 'prerender']);
+
+function isBlockedResourceHintLink(node: Element): boolean {
+  if (normalizeName(node.nodeName) !== 'link') return false;
+  const rel = normalizeName(node.getAttribute?.('rel'));
+  if (!rel) return false;
+  return rel.split(/\s+/).some((token) => BLOCKED_LINK_RELS.has(token));
+}
+
 function applyProjectHooks(purifier: any, report: SanitizeReport, options: SanitizeOptions): void {
   // Nodes flagged for removal during uponSanitizeElement (where their original
   // attributes are still readable) but detached later in afterSanitizeElements,
@@ -217,6 +231,11 @@ function applyProjectHooks(purifier: any, report: SanitizeReport, options: Sanit
     // Detect URL-targeting SVG animations here, before DOMPurify strips their
     // attributeName/values attributes (which would hide the vector from later hooks).
     if (isUrlTargetingAnimation(node)) {
+      reportTag(report, tag);
+      pendingRemoval.add(node);
+    }
+    // Drop connection/prefetch resource-hint links (see BLOCKED_LINK_RELS).
+    if (isBlockedResourceHintLink(node)) {
       reportTag(report, tag);
       pendingRemoval.add(node);
     }
@@ -283,10 +302,11 @@ export function createSanitizer(runtimeWindow: any, createDOMPurify: any) {
 
     const html = purifier.sanitize(rawHtml, {
       WHOLE_DOCUMENT: true,
+      // ALLOWED_TAGS/ALLOWED_ATTR are authoritative (they replace DOMPurify's
+      // defaults). Per-tag attribute tightening happens in the afterSanitizeAttributes
+      // hook; DISALLOWED_TAGS is the hard deny-list.
       ALLOWED_TAGS: allowedTags,
       ALLOWED_ATTR: getAllowedAttrs(options),
-      ADD_TAGS: allowedTags,
-      ADD_ATTR: getAllowedAttrs(options),
       FORBID_TAGS: DISALLOWED_TAGS,
       KEEP_CONTENT: true,
       ALLOW_DATA_ATTR: true,

@@ -25,6 +25,21 @@ test('normalizeInput rejects oversized strings', async () => {
   await assert.rejects(() => normalizeInput('abcdef', { maxBytes: 3 }), /exceeds/);
 });
 
+test('normalizeInput rejects an oversized Blob without reading it into memory', async () => {
+  // A Blob whose .size exceeds maxBytes must be rejected before arrayBuffer().
+  let read = false;
+  const blob = new Blob(['abcdef']); // size 6
+  Object.defineProperty(blob, 'arrayBuffer', {
+    configurable: true,
+    value() {
+      read = true;
+      return Blob.prototype.arrayBuffer.call(this);
+    },
+  });
+  await assert.rejects(() => normalizeInput(blob, { maxBytes: 3 }), /exceeds/);
+  assert.equal(read, false, 'arrayBuffer() must not be called for an oversized Blob');
+});
+
 test('decodeHtmlBytes falls back to declared charset for non-UTF-8 bytes', () => {
   const bytes = fixtureBytes('edge/gbk-encoded.html');
   const result = decodeHtmlBytes(bytes);
