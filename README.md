@@ -101,7 +101,7 @@ External links are also fail-closed. The default protocol allowlist is `http:`, 
 ## Documentation
 
 - [Integration Guide](docs/INTEGRATION.md)
-- [使用文档(中文)](docs/使用文档.zh-CN.md)
+- [使用文档(中文)](docs/README.zh-CN.md)
 - [Security Model](docs/SECURITY_MODEL.md)
 - [Sanitizer Decision](docs/SANITIZER_DECISION.md)
 - [Browser Support](docs/BROWSER_SUPPORT.md)

@@ -1,6 +1,6 @@
 # Roadmap
 
-This document tracks what remains before the project is ready for a stronger public v0.1 release.
+`v0.1.0` is published to npm. This document tracks what's landed and what's still ahead.
 
 ## Current State
 
