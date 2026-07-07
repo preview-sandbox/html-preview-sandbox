@@ -1,8 +1,15 @@
 # html-preview-sandbox
 
+[![npm](https://img.shields.io/npm/v/html-preview-sandbox.svg)](https://www.npmjs.com/package/html-preview-sandbox)
+[![CI](https://github.com/preview-sandbox/html-preview-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/preview-sandbox/html-preview-sandbox/actions/workflows/ci.yml)
+[![provenance](https://img.shields.io/badge/provenance-signed-brightgreen)](https://www.npmjs.com/package/html-preview-sandbox#provenance)
+[![license](https://img.shields.io/npm/l/html-preview-sandbox.svg)](LICENSE)
+
 Safely preview untrusted, interactive HTML in a sandboxed iframe.
 
 `html-preview-sandbox` helps applications render untrusted HTML files, user uploads, and AI-generated reports without giving them full browser power. It combines DOMPurify sanitization, CSP presets, opaque-origin sandboxed iframes, external-link mediation, and host callbacks.
+
+**[Try it in the hosted Playground →](https://preview-sandbox.github.io/html-preview-sandbox/playground/)**
 
 ## Install
 
@@ -160,4 +167,4 @@ The Playground is a three-panel workbench with HTML input, sandboxed preview, an
 
 ## Status
 
-This is an initial v0.1 TypeScript implementation. The API is expected to evolve before 1.0.
+`v0.1.0` is published to npm with build provenance. This is an initial TypeScript implementation and the API is expected to evolve before 1.0.
