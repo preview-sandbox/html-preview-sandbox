@@ -48,7 +48,7 @@ jobs:
           printf '<!doctype html><meta http-equiv="refresh" content="0; url=./playground/">' > _site/index.html
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
