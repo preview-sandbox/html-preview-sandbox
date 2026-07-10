@@ -19,7 +19,7 @@ If you are unsure whether something crosses this line, open an issue before cont
 npm install
 npm run build          # tsup -> dist/ (tests and examples run against dist/)
 npm run check          # type check + Node test suite
-npm run test:browser   # Playwright browser tests (run `npx playwright install --with-deps chrome` first)
+npm run test:browser   # Playwright tests on Chromium/Firefox/WebKit (run `npx playwright install --with-deps chromium firefox webkit` first)
 ```
 
 The local quality gate before opening a PR:
