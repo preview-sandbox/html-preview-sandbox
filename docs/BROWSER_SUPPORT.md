@@ -39,4 +39,5 @@ Sanitizer:
 
 - CSP is delivered as a `<meta http-equiv="Content-Security-Policy">` tag. All supported browsers honor meta CSP for the directives this library uses; `report-uri`/`report-to` are intentionally not used (they are ignored in meta CSP), which is why violation reporting goes through the `securitypolicyviolation` event and the bridge instead.
 - The `strict`/`balanced`/`offline` presets rely only on CSP directives that are broadly supported across the baseline. `upgrade-insecure-requests` and `block-all-mixed-content` degrade gracefully where unsupported.
+- The Playwright suite runs on all three bundled engines (Chromium, Firefox, WebKit) in CI, so the Chrome/Firefox/Safari rows above are exercised on every push, not just claimed. Bundled engines track current stable, so the *minimum* versions in the table remain a documented floor rather than a tested one.
 - Older browsers are not tested and not supported. If a wider baseline is required, that would be a deliberate future scope decision (see `ROADMAP.md`).

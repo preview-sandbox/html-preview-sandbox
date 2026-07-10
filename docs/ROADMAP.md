@@ -75,14 +75,11 @@ These improve adoption and maintainability.
 
 2. **Improve CI signal**
 
-   Done: Dependabot (`.github/dependabot.yml`) and CodeQL static analysis
-   (`.github/workflows/codeql.yml`). The main CI workflow already runs a
-   `pack:dry` job.
-
-   Still to add:
-
-   - browser matrix expansion (Firefox/WebKit) once the compatibility target is
-     confirmed and those engines are verified to pass.
+   Done: Dependabot (`.github/dependabot.yml`); the main CI workflow runs
+   lint, type check, Node tests, the Playwright suite on all three bundled
+   engines (Chromium/Firefox/WebKit), a build, and a `pack:dry` job.
+   (A CodeQL workflow existed briefly but was removed — code scanning
+   isn't enabled for this repo.)
 
 3. **Package release workflow**
 
