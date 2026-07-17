@@ -7,6 +7,12 @@ phase the public API may change between minor versions.
 
 ## [Unreleased]
 
+### Added
+
+- React wrapper: `html-preview-sandbox/react` exports a `<SafeHtmlPreview>`
+  component (all `PreviewOptions` as props, forwarded ref exposing the
+  `PreviewHandle`). `react` is an optional peer dependency.
+
 ## [0.1.0] - 2026-07-06
 
 Initial release.

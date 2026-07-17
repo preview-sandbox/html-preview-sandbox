@@ -69,9 +69,10 @@ These improve adoption and maintainability.
      code — runs with a separately installed `electron`).
    - Done: Node `createHtmlDocument` (full pipeline, no iframe) for self-managed
      webviews / SSR / CLI (`examples/node-create-document/`).
-   - Deferred: React/Vue examples (need a build step; Web Component already covers
-     the framework-agnostic entry) and a multiple-previews-per-page snippet. Low
-     priority — these are capability showcases, not core adoption entry points.
+   - Done: React wrapper (`html-preview-sandbox/react`) with its example page
+     (`examples/react/`, bundled by tsup, covered by the browser suite).
+   - Deferred: a Vue example (the Web Component covers the framework-agnostic
+     entry) and a multiple-previews-per-page snippet.
 
 2. **Improve CI signal**
 

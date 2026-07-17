@@ -183,7 +183,8 @@ window.previewHost.onNavigationAttempt((url) => preview.notifyNavigationAttempt(
 ## 框架封装
 
 - **Web Component**:`examples/web-component/` 里有一个 `<safe-html-preview>` 自定义元素,可直接照抄
-- **React / Vue**:v0.1 暂未内置封装,可基于 `createPreview` 自行包一层(在 `useEffect`/`onMounted` 里 create、卸载时 `destroy`)
+- **React**:内置封装,`import { SafeHtmlPreview } from 'html-preview-sandbox/react'`,`source`/CSP/回调都是 props,`ref` 可拿到底层 `PreviewHandle`(见 `examples/react/`)
+- **Vue**:暂未内置封装,可基于 `createPreview` 自行包一层(在 `onMounted` 里 create、卸载时 `destroy`),或直接用 Web Component 封装
 
 ## 安全边界(务必了解)
 
