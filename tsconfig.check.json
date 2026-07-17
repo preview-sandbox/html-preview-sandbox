@@ -5,9 +5,8 @@
     "moduleResolution": "Bundler",
     "allowJs": false,
     "noEmit": true,
-    "jsx": "react-jsx",
     "strict": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src/**/*.ts"]
 }

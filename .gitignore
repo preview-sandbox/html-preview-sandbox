@@ -4,6 +4,4 @@ test-results/
 playwright-report/
 coverage/
 dist/
-examples/react/app.js
-examples/react/app.js.map
 .DS_Store

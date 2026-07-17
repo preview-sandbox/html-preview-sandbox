@@ -55,27 +55,6 @@ Use the explicit browser subpath when your runtime or bundler does not honor the
 import { createPreview } from 'html-preview-sandbox/browser';
 ```
 
-## React
-
-```jsx
-import { SafeHtmlPreview } from 'html-preview-sandbox/react';
-
-function ReportViewer({ html }) {
-  return (
-    <SafeHtmlPreview
-      source={html}
-      csp="strict"
-      onOpenExternal={(url) => window.open(url, '_blank', 'noopener,noreferrer')}
-    />
-  );
-}
-```
-
-`source` accepts the same inputs as `render()` (string, `File`, `Blob`, bytes). All
-`PreviewOptions` are props; the forwarded `ref` exposes the underlying
-`PreviewHandle` for imperative use. `react` is an optional peer dependency —
-nothing changes for non-React consumers. See `examples/react/`.
-
 ## Sanitizer Choice
 
 This project currently uses **DOMPurify** for the sanitization layer.

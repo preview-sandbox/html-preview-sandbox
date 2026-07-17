@@ -28,11 +28,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.browser.js",
       "default": "./dist/index.browser.js"
-    },
-    "./react": {
-      "types": "./dist/react.d.ts",
-      "import": "./dist/react.js",
-      "default": "./dist/react.js"
     }
   },
   "files": [
@@ -74,14 +69,6 @@
   "engines": {
     "node": ">=18"
   },
-  "peerDependencies": {
-    "react": "^17 || ^18 || ^19"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    }
-  },
   "dependencies": {
     "dompurify": "^3.4.11",
     "jsdom": "^29.1.1"
@@ -89,10 +76,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.2",
     "@playwright/test": "^1.61.1",
-    "@types/react": "^19.2.17",
     "electron": "^43.0.0",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3"
   },

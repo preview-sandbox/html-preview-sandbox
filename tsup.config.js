@@ -28,35 +28,4 @@ export default defineConfig([
     dts: false,
     external: ['dompurify'],
   },
-  {
-    entry: {
-      react: 'src/react.tsx',
-    },
-    format: ['esm'],
-    platform: 'browser',
-    target: 'es2020',
-    sourcemap: true,
-    clean: false,
-    dts: false,
-    // react stays external (peer dep); the browser core is intentionally
-    // inlined — consumers of /react don't need the "." entry at all.
-    external: ['react', 'react/jsx-runtime'],
-    noExternal: ['dompurify'],
-  },
-  {
-    // Test/example harness: a self-contained React app bundle (not shipped —
-    // examples/ isn't in the npm files list; app.js is gitignored).
-    entry: {
-      app: 'examples/react/app.jsx',
-    },
-    outDir: 'examples/react',
-    format: ['esm'],
-    platform: 'browser',
-    target: 'es2020',
-    sourcemap: false,
-    clean: false,
-    dts: false,
-    noExternal: [/.*/],
-    define: { 'process.env.NODE_ENV': '"production"' },
-  },
 ]);
