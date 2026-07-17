@@ -28,4 +28,19 @@ export default defineConfig([
     dts: false,
     external: ['dompurify'],
   },
+  {
+    entry: {
+      react: 'src/react.tsx',
+    },
+    format: ['esm'],
+    platform: 'browser',
+    target: 'es2020',
+    sourcemap: true,
+    clean: false,
+    dts: false,
+    // react stays external (peer dep); the browser core is intentionally
+    // inlined — consumers of /react don't need the "." entry at all.
+    external: ['react', 'react/jsx-runtime'],
+    noExternal: ['dompurify'],
+  },
 ]);
