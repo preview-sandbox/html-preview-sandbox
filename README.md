@@ -76,6 +76,10 @@ function ReportViewer({ html }) {
 `PreviewHandle` for imperative use. `react` is an optional peer dependency —
 nothing changes for non-React consumers. See `examples/react/`.
 
+The entry is safe to import during SSR (Next.js et al.): the sanitizer only
+touches `window` when a preview actually renders, and rendering happens inside
+effects. TypeScript consumers should also install `@types/react`.
+
 ## Sanitizer Choice
 
 This project currently uses **DOMPurify** for the sanitization layer.
