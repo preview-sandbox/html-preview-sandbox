@@ -139,7 +139,7 @@ The type check validates the TypeScript source and generated public API surface.
 In CI, install the Playwright browser before `npm run test:browser`:
 
 ```bash
-npx playwright install --with-deps chrome
+npx playwright install --with-deps chromium firefox webkit
 ```
 
 Run the default local quality gate before publishing changes:
