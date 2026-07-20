@@ -16,6 +16,7 @@ them from the repository (after `npm install`), not from a copied folder.
 | [`web/`](web/) | String input | Browser | `test/browser/preview.spec.js` |
 | [`file-upload/`](file-upload/) | `File`/`Blob` input, drag & drop, error states | Browser | `test/browser/file-upload.spec.js` |
 | [`web-component/`](web-component/) | `<safe-html-preview>` custom element | Browser | `test/browser/web-component.spec.js` |
+| [`react/`](react/) | `<SafeHtmlPreview>` React component | Browser (needs `npm run build`) | `test/browser/react.spec.js` |
 | [`electron/`](electron/) | Desktop host + main-process navigation interception | Electron | reference only |
 | [`node-create-document/`](node-create-document/) | `createHtmlDocument` (pipeline, no iframe) | Node | verify by output |
 

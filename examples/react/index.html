@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>html-preview-sandbox — React example</title>
+    <style>
+      :root { --ink:#14213d; --muted:#657083; --line:#dce3ed; --paper:#f4f6f9; --surface:#fff; --blue:#3566a5; --warn:#b7791f; --err:#b2403a; --ok:#1f8a70; }
+      * { box-sizing: border-box; }
+      html, body, #root { height: 100%; margin: 0; }
+      body { font-family: Inter, system-ui, -apple-system, sans-serif; color: var(--ink); background: var(--paper); }
+
+      .app { display: grid; grid-template-rows: auto 1fr; height: 100%; }
+
+      header { display: flex; align-items: center; gap: 12px; padding: 12px 18px; background: #fbfcf7; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+      .brand-mark { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 7px; background: var(--ink); color: #fff; font: 12px/1 ui-monospace, Menlo, monospace; }
+      .brand-text h1 { margin: 0; font-size: 16px; }
+      .brand-text p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+      .brand-text code { background: #eef2f7; padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+
+      .controls { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+      .controls button, .controls select {
+        min-height: 32px; padding: 0 12px;
+        border: 1px solid var(--line); border-radius: 7px;
+        background: var(--surface); color: var(--ink);
+        font: inherit; font-size: 13px; cursor: pointer;
+      }
+      .controls button:hover { border-color: var(--blue); color: var(--blue); }
+
+      main { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 12px; min-height: 0; padding: 12px; }
+      .pane { display: grid; grid-template-rows: auto 1fr; min-height: 0; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); overflow: hidden; }
+      .pane-head { padding: 9px 13px; border-bottom: 1px solid var(--line); background: #fafbfc; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
+      .pane-body { min-height: 0; background: #fff; }
+
+      .placeholder { color: var(--muted); font-size: 12px; padding: 12px; margin: 0; }
+
+      .log { padding: 10px 12px; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
+      .entry { padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; font-size: 12px; line-height: 1.4; background: #fbfcfe; font-family: ui-monospace, Menlo, monospace; overflow-wrap: anywhere; }
+      .entry.external { border-left: 3px solid var(--blue); }
+      .entry.sanitize { border-left: 3px solid var(--ok); }
+      .entry.error { border-left: 3px solid var(--err); }
+
+      @media (max-width: 720px) { main { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
