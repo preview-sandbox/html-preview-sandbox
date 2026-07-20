@@ -192,4 +192,4 @@ The Playground is a three-panel workbench with HTML input, sandboxed preview, an
 
 ## Status
 
-`v0.1.0` is published to npm with build provenance. This is an initial TypeScript implementation and the API is expected to evolve before 1.0.
+`v0.2.0` is published to npm with build provenance, adding the React wrapper on top of the 0.1 core. The API is expected to evolve before 1.0 — see `CHANGELOG.md` for what changed in each release.
