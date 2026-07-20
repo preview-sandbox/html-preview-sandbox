@@ -7,11 +7,21 @@ phase the public API may change between minor versions.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-20
+
 ### Added
 
 - React wrapper: `html-preview-sandbox/react` exports a `<SafeHtmlPreview>`
   component (all `PreviewOptions` as props, forwarded ref exposing the
-  `PreviewHandle`). `react` is an optional peer dependency.
+  `PreviewHandle`). `react` is an optional peer dependency. Ships with an
+  example page (`examples/react/`) covered by the browser suite on all
+  three engines.
+
+### Fixed
+
+- The browser entry (`/browser`, and `/react` which inlines it) no longer
+  touches `window` at import time — the sanitizer is created on first call,
+  so both entries are safe to import during SSR.
 
 ## [0.1.0] - 2026-07-06
 
@@ -47,5 +57,6 @@ Initial release.
 - Node and Playwright test suites, security regression fixtures, threat model,
   security policy, and contributor documentation.
 
-[Unreleased]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/preview-sandbox/html-preview-sandbox/releases/tag/v0.1.0

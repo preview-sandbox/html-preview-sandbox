@@ -1,6 +1,6 @@
 {
   "name": "html-preview-sandbox",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Preview untrusted HTML safely with DOMPurify, CSP, and sandboxed iframes.",
   "type": "module",
   "license": "MIT",
