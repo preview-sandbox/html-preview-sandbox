@@ -7,6 +7,12 @@ phase the public API may change between minor versions.
 
 ## [Unreleased]
 
+### Changed
+
+- CI, Pages, and release toolchain jobs now use Node 22.13 to satisfy the
+  Electron 43 development requirement, while Node 20.19 remains covered by the
+  dedicated core compatibility job.
+
 ## [0.3.1] - 2026-09-29
 
 ### Added
