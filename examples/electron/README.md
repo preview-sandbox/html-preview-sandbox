@@ -7,8 +7,8 @@ JavaScript-driven `window.location` navigation out of the sandboxed iframe.
 
 ```
 sandboxed iframe                 main process                     renderer
-  window.location = "..."  ──►  did-start-navigation      ──►  preview.notifyNavigationAttempt(url)
-                                will-frame-navigate               │
+  window.location = "..."  ──►  will-frame-navigate       ──►  preview.notifyNavigationAttempt(url)
+                                preventDefault()                  │
                                                                   ├─ re-mounts last trusted document
                                                                   └─ routes url through the allowlist
                                                                         └─ onOpenExternal → shell.openExternal
@@ -22,22 +22,25 @@ sandboxed iframe                 main process                     renderer
 
 ## Running
 
-This example needs Electron and the package build. `electron` is intentionally
-**not** a dependency of this package, so install it explicitly first — do not rely
-on `npx electron` to fetch it on the fly. The on-the-fly `npx` install often leaves
-the ~100 MB Electron runtime binary unusable and the app exits immediately with no
-window.
+This example needs Electron and the package build. Electron is a repository
+development dependency, not a runtime dependency of the published package. Do not
+rely on `npx` to fetch it on the fly; install the repository dependencies first.
+The navigation-interception code requires Electron 25 or newer because it uses
+the cancellable `will-frame-navigate` event.
 
 From the repository root:
 
 ```bash
-npm install                     # root deps (dompurify, etc.)
+npm ci                          # root dependencies, including development Electron
 npm run build                   # the example imports ../../dist
-npm install --save-dev electron # install Electron properly (downloads its binary)
 npx electron examples/electron/main.cjs
 ```
 
-When you are done you can remove it again with `npm uninstall electron`.
+For an automated smoke test, run `npm run test:electron`. The test launches the
+real Electron application, waits for the sandboxed preview, exercises the
+main/preload/renderer IPC path, and verifies that untrusted navigation URLs are
+rendered as text rather than host-page markup. It also verifies that one navigation
+attempt is cancelled and forwarded exactly once.
 
 ## Why this matters
 

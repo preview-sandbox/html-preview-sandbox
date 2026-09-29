@@ -76,7 +76,12 @@
         if (empty) empty.remove();
         const el = document.createElement('div');
         el.className = `entry ${kind}`;
-        el.innerHTML = `<span class="k">${label}</span><br><code>${url}</code>`;
+        const key = document.createElement('span');
+        key.className = 'k';
+        key.textContent = label;
+        const value = document.createElement('code');
+        value.textContent = url;
+        el.append(key, document.createElement('br'), value);
         log.prepend(el);
       }
 

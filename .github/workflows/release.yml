@@ -47,6 +47,9 @@ jobs:
       - name: Browser tests
         run: npm run test:browser
 
+      - name: Electron example smoke test
+        run: xvfb-run -a npm run test:electron
+
       - name: Test packed package exports
         run: npm run test:package
 

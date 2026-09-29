@@ -68,8 +68,8 @@ These improve adoption and maintainability.
      sanitize-report / `OVERSIZED` error display (`examples/file-upload/`, covered by
      Playwright smoke tests). Covers the attachment / upload / netdisk shape.
    - Done: vanilla Web Component wrapper (`examples/web-component/`, smoke-tested).
-   - Done: Electron host navigation interception (`examples/electron/`, reference
-     code — runs with a separately installed `electron`).
+   - Done: Electron host navigation interception (`examples/electron/`, covered by
+     a real-process smoke test in `npm run test:electron`).
    - Done: Node `createHtmlDocument` (full pipeline, no iframe) for self-managed
      webviews / SSR / CLI (`examples/node-create-document/`).
    - Done: React wrapper (`html-preview-sandbox/react`) with its example page
@@ -81,9 +81,9 @@ These improve adoption and maintainability.
 
    Done: Dependabot (`.github/dependabot.yml`); the main CI workflow runs
    lint, type check, Node tests on Node 20.19, 22.13, and 24, the Playwright
-   suite on all three bundled engines (Chromium/Firefox/WebKit), a build,
-   `pack:dry`, and a consumer smoke test against the actual packed Node, browser,
-   and React exports.
+   suite on all three bundled engines (Chromium/Firefox/WebKit), a real Electron
+   example smoke test, a build, `pack:dry`, and a consumer smoke test against the
+   actual packed Node, browser, and React exports.
    (A CodeQL workflow existed briefly but was removed — code scanning
    isn't enabled for this repo.)
 

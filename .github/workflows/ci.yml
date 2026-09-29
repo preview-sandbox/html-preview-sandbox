@@ -39,6 +39,9 @@ jobs:
       - name: Run browser tests
         run: npm run test:browser
 
+      - name: Run Electron example smoke test
+        run: xvfb-run -a npm run test:electron
+
       - name: Build package
         run: npm run build
 

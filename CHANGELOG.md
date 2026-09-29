@@ -7,6 +7,17 @@ phase the public API may change between minor versions.
 
 ## [Unreleased]
 
+### Added
+
+- A real-process Electron example smoke test, included in CI and the release gate.
+
+### Fixed
+
+- Electron example event logs now render untrusted navigation URLs as text instead
+  of parsing them as host-page HTML.
+- Electron iframe navigation is now cancelled and forwarded through a single event
+  path, preventing duplicate logs and duplicate `shell.openExternal` calls.
+
 ## [0.3.0] - 2026-09-29
 
 ### Changed

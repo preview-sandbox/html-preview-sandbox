@@ -17,7 +17,7 @@ them from the repository (after `npm install`), not from a copied folder.
 | [`file-upload/`](file-upload/) | `File`/`Blob` input, drag & drop, error states | Browser | `test/browser/file-upload.spec.js` |
 | [`web-component/`](web-component/) | `<safe-html-preview>` custom element | Browser | `test/browser/web-component.spec.js` |
 | [`react/`](react/) | `<SafeHtmlPreview>` React component | Browser (needs `npm run build`) | `test/browser/react.spec.js` |
-| [`electron/`](electron/) | Desktop host + main-process navigation interception | Electron | reference only |
+| [`electron/`](electron/) | Desktop host + main-process navigation interception | Electron 25+ | `npm run test:electron` |
 | [`node-create-document/`](node-create-document/) | `createHtmlDocument` (pipeline, no iframe) | Node | verify by output |
 
 ## Browser examples (web, file-upload, web-component)
@@ -48,15 +48,19 @@ npm run test:browser
 
 ## Electron example
 
-Reference code — needs Electron, which is **not** a dependency of this package.
-Install Electron explicitly (don't rely on `npx` to fetch it on the fly — that
-often leaves the runtime binary unusable and the app exits with no window):
+Electron is a repository development dependency, not a runtime dependency of the
+published package. Install the repository dependencies before running it:
 
 ```bash
+npm ci
 npm run build
-npm install --save-dev electron
 npx electron examples/electron/main.cjs
 ```
+
+Run the automated Electron smoke test with `npm run test:electron`. It verifies
+the sandboxed preview, preload/main-process bridge, and text-only rendering of
+untrusted navigation URLs. The navigation interception requires Electron 25 or
+newer and verifies that each attempt is cancelled and forwarded exactly once.
 
 **Verify** — the window renders the sandboxed preview; clicking the external link
 opens the system browser (via `shell.openExternal`); clicking "Try to navigate away"

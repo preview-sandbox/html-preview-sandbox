@@ -8,14 +8,14 @@
 // This demonstrates the one defense a pure Web host cannot provide: intercepting
 // JavaScript-driven `window.location` navigation out of the sandboxed iframe.
 //
-// The main process observes iframe navigations via `did-start-navigation` /
+// The main process observes and cancels iframe navigations via
 // `will-frame-navigate`, forwards the URL to the renderer over IPC, and the
 // renderer calls `preview.notifyNavigationAttempt(url)`. The core library then
 // re-mounts the last trusted document and routes the URL through the external-link
 // allowlist (where the host opens it with `shell.openExternal`).
 
 const path = require('node:path');
-const { app, BrowserWindow, ipcMain, shell, webFrameMain } = require('electron');
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -39,19 +39,18 @@ function createWindow() {
     win.webContents.send('preview:navigation-attempt', url);
   };
 
-  win.webContents.on('did-start-navigation', (_event, url, isInPlace, isMainFrame, processId, routingId) => {
-    if (isMainFrame || isInPlace) return;
-    let frame = null;
-    try {
-      frame = webFrameMain.fromId(processId, routingId);
-    } catch (_) {
-      /* ignore */
-    }
-    forward(url, frame);
-  });
-
   win.webContents.on('will-frame-navigate', (details) => {
     if (details.isMainFrame) return;
+    if (
+      !details.url ||
+      details.url === 'about:srcdoc' ||
+      details.url === 'about:blank' ||
+      details.url.startsWith('blob:') ||
+      !isPreviewFrame(details.frame)
+    ) {
+      return;
+    }
+    details.preventDefault();
     forward(details.url, details.frame);
   });
 
