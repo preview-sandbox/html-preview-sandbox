@@ -5,6 +5,20 @@ hardens the Electron integration example, adds a real-process Electron release
 test, and documents the verified test matrix and remaining coverage boundaries.
 This document tracks what's landed and what's still ahead.
 
+## v0.3.1 Release Closure
+
+Closed on 2026-09-29:
+
+- npm `latest` points to `0.3.1`; the public tarball exposes 38 expected files
+  (170.1 kB compressed) with npm provenance and registry integrity metadata;
+- a clean public-registry install successfully imported the Node and browser
+  entrypoints;
+- GitHub tag and Release `v0.3.1` point to release commit `b593e89`;
+- release CI and the hosted Playground deployment completed successfully;
+- `main` contains one post-release CI-only commit (`a13fb57`) aligning the
+  toolchain with Electron 43's Node requirement. It does not change the published
+  runtime and is correctly recorded under `Unreleased`.
+
 ## Current State
 
 Implemented:
@@ -95,8 +109,8 @@ These improve adoption and maintainability.
    - the real Electron process test passed locally on macOS and in Linux/Xvfb CI;
    - Node 20.19, 22.13, and 24 jobs passed;
    - npm audit reported zero known vulnerabilities in the audited dependency graph;
-   - `pack:dry` contained 38 expected files (168.6 kB compressed), and the Node
-     example plus the performance/size benchmark completed successfully.
+   - the final `v0.3.1` package contained 38 expected files (170.1 kB compressed);
+     the Node example and performance/size benchmark also completed successfully.
 
    Known coverage boundaries (not release blockers for the current version):
 

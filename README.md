@@ -243,4 +243,6 @@ The Playground is a three-panel workbench with HTML input, sandboxed preview, an
 `v0.3.1` is published to npm with build provenance. It keeps the core runtime API
 from `v0.3.0` unchanged while hardening the Electron integration example, adding a
 real-process Electron release test, and documenting the verified test matrix. The
-API is expected to evolve before 1.0 — see `CHANGELOG.md` for each release.
+published tarball, provenance, and a clean public-registry consumer install were
+verified after release. The API is expected to evolve before 1.0 — see
+`CHANGELOG.md` for each release.

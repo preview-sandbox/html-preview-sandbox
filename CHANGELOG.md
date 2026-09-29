@@ -12,6 +12,8 @@ phase the public API may change between minor versions.
 - CI, Pages, and release toolchain jobs now use Node 22.13 to satisfy the
   Electron 43 development requirement, while Node 20.19 remains covered by the
   dedicated core compatibility job.
+- README and roadmap now record the finalized `v0.3.1` registry, provenance,
+  public-install, CI, and package-content verification results.
 
 ## [0.3.1] - 2026-09-29
 
