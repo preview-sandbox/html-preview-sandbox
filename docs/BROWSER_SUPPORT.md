@@ -9,7 +9,8 @@
 | Chrome / Edge | 90+ |
 | Firefox | 90+ |
 | Safari | 14+ |
-| Electron | 12+ (Chromium 89+) |
+| Electron core renderer API | 12+ (Chromium 89+) |
+| Electron navigation-interception example | 25+ (`will-frame-navigate`) |
 | Node (for the jsdom-backed sanitizer path and tests) | 20.19+, 22.13+, or 24+ (all three release lines are exercised in CI) |
 
 The browser binding constraint is `Blob.prototype.arrayBuffer()` (Safari 14,
@@ -41,4 +42,8 @@ Sanitizer:
 - CSP is delivered as a `<meta http-equiv="Content-Security-Policy">` tag. All supported browsers honor meta CSP for the directives this library uses; `report-uri`/`report-to` are intentionally not used (they are ignored in meta CSP), which is why violation reporting goes through the `securitypolicyviolation` event and the bridge instead.
 - The `strict`/`balanced`/`offline` presets rely only on CSP directives that are broadly supported across the baseline. `upgrade-insecure-requests` and `block-all-mixed-content` degrade gracefully where unsupported.
 - The Playwright suite runs on all three bundled engines (Chromium, Firefox, WebKit) in CI, so the Chrome/Firefox/Safari rows above are exercised on every push, not just claimed. Bundled engines track current stable, so the *minimum* versions in the table remain a documented floor rather than a tested one.
+- The Electron example is tested as a real process on Linux under Xvfb in CI. The
+  latest full verification snapshot also passed on macOS. The repository currently
+  tests its pinned development Electron version, not every supported Electron
+  release or native Windows Electron.
 - Older browsers are not tested and not supported. If a wider baseline is required, that would be a deliberate future scope decision (see `ROADMAP.md`).

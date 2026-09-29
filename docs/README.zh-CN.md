@@ -22,7 +22,8 @@ npm install html-preview-sandbox
 ```
 
 - 仅提供 ESM 构建,Node/default 入口支持 Node 20.19+、22.13+ 或 24+
-- 浏览器基线:Chrome/Edge 90+、Firefox 90+、Safari 14+、Electron 12+(详见 [BROWSER_SUPPORT.md](BROWSER_SUPPORT.md))
+- 浏览器基线:Chrome/Edge 90+、Firefox 90+、Safari 14+;Electron 核心渲染 API
+  12+,导航拦截示例 25+(详见 [BROWSER_SUPPORT.md](BROWSER_SUPPORT.md))
 
 ## 快速上手
 
@@ -174,18 +175,31 @@ createPreview(el, {
 
 ### Electron:补齐自我导航防御
 
-纯 Web 拦不住 iframe 里的 `window.location = ...`(`Location` 是 `[Unforgeable]`)。Electron 主进程能观察到所有 frame 导航,可补齐这一层:
+纯 Web 拦不住 iframe 里的 `window.location = ...`(`Location` 是 `[Unforgeable]`)。Electron 主进程能观察到所有 frame 导航,可补齐这一层。下面使用的可取消 `will-frame-navigate` 事件要求 Electron 25+;核心渲染 API 本身仍支持 Electron 12+:
 
 ```js
-// 主进程:监听导航 → IPC 通知渲染层
+// 主进程:取消预览 frame 的导航 → IPC 通知渲染层
 win.webContents.on('will-frame-navigate', (details) => {
-  if (!details.isMainFrame) win.webContents.send('nav-attempt', details.url);
+  if (details.isMainFrame || !isPreviewFrame(details.frame)) return;
+  details.preventDefault();
+  win.webContents.send('nav-attempt', details.url);
 });
 // 渲染层:
 window.previewHost.onNavigationAttempt((url) => preview.notifyNavigationAttempt(url));
 ```
 
 完整可运行示例见 [`examples/electron/`](../examples/electron/)。
+
+完整本地功能门槛为:
+
+```bash
+npm run check && npm run test:browser && npm run test:electron
+```
+
+发布或依赖更新前另跑 `npm run audit`。当前 CI 覆盖 Node 20.19/22.13/24、
+Chromium/Firefox/WebKit 和 Linux/Xvfb Electron。最低浏览器版本实机、Windows
+原生 Electron、更多 bundler、持续模糊测试和性能阈值仍是明确的覆盖边界,
+详见 [ROADMAP.md](ROADMAP.md)。
 
 ## 框架封装
 

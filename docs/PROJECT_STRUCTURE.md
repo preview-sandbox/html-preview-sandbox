@@ -80,8 +80,18 @@ Tests and local examples intentionally run against `dist` after build. This keep
 - `test/*.test.js`: Node tests for decoding, CSP, sanitizer behavior, package metadata, and document assembly.
 - `test/sanitize-memory.test.js`: bounded-heap child-process regression for repeated Node/jsdom sanitization.
 - `test/browser/*.spec.js`: Playwright tests for browser iframe behavior, bridge forwarding, host navigation handling, external URL policy, and the example/Playground UIs (file upload, Web Component, sanitized-HTML view, shareable URL, drag-and-drop).
+- `scripts/test-electron-example.mjs`: launches the real Electron example and verifies the sandboxed preview, IPC navigation bridge, text-only host logging, cancellation, and exactly-once external opening.
 - `scripts/test-package.mjs`: packs the real npm artifact, installs it into a temporary consumer, and smoke-tests the Node, browser, and React exports.
 - `fixtures/`: stable inputs for benign, malicious, and edge cases.
+
+The complete local functional gate is:
+
+```bash
+npm run check && npm run test:browser && npm run test:electron
+```
+
+`npm run audit`, `npm run pack:dry`, and `npm run benchmark` provide dependency,
+package-content, and performance/size checks respectively.
 
 From a repository checkout, `npm run benchmark` builds the package and measures
 input normalization, sanitization, complete document assembly, and raw/gzip

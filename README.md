@@ -163,13 +163,21 @@ docs/         Integration, architecture, and security notes
 ## Tests
 
 ```bash
-npm run check:types
-npm test
+npm run check
 npm run test:browser
-npm run build
+npm run test:electron
+npm run audit
 ```
 
-The type check validates the TypeScript source and generated public API surface. The Node test suite covers decoding, CSP generation, injection order, protocol filtering, and sanitization reports. The Playwright suite verifies real browser iframe sandboxing and external-link bridging, plus the Web example, file-upload example, Web Component, and Playground behaviors.
+`check` covers formatting, linting, type checking, the Node suite, a build, and
+consumer tests against the actual npm tarball. The Node suite covers decoding,
+CSP generation, injection order, protocol filtering, and sanitization reports.
+The Playwright suite verifies real browser iframe sandboxing and external-link
+bridging on Chromium, Firefox, and WebKit, plus the Web, file-upload, Web
+Component, React, and Playground integrations. The Electron smoke test launches
+the real example process and exercises its main/preload/renderer navigation path.
+`audit` checks the installed dependency graph, excluding optional dependencies,
+against npm's current advisory data.
 
 Empty or fully stripped input produces a safe blank document rather than throwing.
 Check `sanitizeReport.strippedAll` to show an empty state in the host UI. The
@@ -185,8 +193,13 @@ npx playwright install --with-deps chromium firefox webkit
 Run the complete local quality gate before publishing changes:
 
 ```bash
-npm run check && npm run test:browser
+npm run check && npm run test:browser && npm run test:electron
 ```
+
+This is the complete local functional gate. Compatibility floors, native Windows
+Electron, additional bundlers, continuous fuzzing, and performance thresholds are
+separate coverage boundaries tracked in the [roadmap](docs/ROADMAP.md); passing the
+gate is not a claim that all sanitizer bypasses or runtime defects are impossible.
 
 From a repository checkout, run machine-local performance and bundle-size
 measurements with:

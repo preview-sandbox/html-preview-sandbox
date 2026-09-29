@@ -21,15 +21,16 @@ not on public branches, until an advisory is ready.
 
 1. Branch from up-to-date `main`.
 2. Make the change; keep it focused (unrelated refactors go in separate PRs).
-3. Run the local gate: `npm run check && npm run test:browser`. `check` includes
-   a consumer smoke test against the actual npm tarball, not only source-tree imports.
+3. Run the local gate: `npm run check && npm run test:browser && npm run test:electron`.
+   `check` includes a consumer smoke test against the actual npm tarball, not only
+   source-tree imports. Run `npm run audit` before a release or dependency update.
 4. Open a PR. The template checklist must pass, including:
    - independent-implementation boundary respected;
    - security-affecting changes carry regression tests and fixtures;
    - docs updated and consistent with actual behavior.
-5. CI runs formatting, lint, type check, Node tests, browser tests, build,
-   `pack:dry`, and a consumer smoke test against the packed Node, browser, and
-   React exports.
+5. CI runs formatting, lint, type check, Node tests, browser tests, the real-process
+   Electron example smoke test, build, `pack:dry`, and a consumer smoke test against
+   the packed Node, browser, and React exports.
 6. Squash-merge into `main` once green and reviewed.
 
 ## Versioning

@@ -51,9 +51,10 @@ fixture coverage, and documents its browser baseline.
    and malformed HTML edge cases.
 
 3. **Document browser compatibility** — Done. See [BROWSER_SUPPORT.md](BROWSER_SUPPORT.md):
-   baseline (Chrome/Edge 90+, Firefox 90+, Safari 14+, Electron 12+, and
-   jsdom's Node range: 20.19+, 22.13+, or 24+) with the
-   binding constraint (`Blob.arrayBuffer`) and the full list of platform features used.
+   baseline (Chrome/Edge 90+, Firefox 90+, Safari 14+, Electron core renderer
+   API 12+, Electron navigation example 25+, and jsdom's Node range: 20.19+,
+   22.13+, or 24+) with the binding constraint (`Blob.arrayBuffer`) and the full
+   list of platform features used.
 
 ## Priority 1
 
@@ -86,6 +87,29 @@ These improve adoption and maintainability.
    actual packed Node, browser, and React exports.
    (A CodeQL workflow existed briefly but was removed — code scanning
    isn't enabled for this repo.)
+
+   Latest full verification snapshot (2026-09-29):
+
+   - 53 Node tests and the packed-tarball consumer test passed;
+   - 78 Playwright tests passed across Chromium, Firefox, and WebKit;
+   - the real Electron process test passed locally on macOS and in Linux/Xvfb CI;
+   - Node 20.19, 22.13, and 24 jobs passed;
+   - npm audit reported zero known vulnerabilities in the audited dependency graph;
+   - `pack:dry` contained 38 expected files (168.6 kB compressed), and the Node
+     example plus the performance/size benchmark completed successfully.
+
+   Known coverage boundaries (not release blockers for the current version):
+
+   - minimum documented browser versions are compatibility floors, not a
+     historical-browser CI matrix;
+   - Electron is not yet exercised natively on Windows or across every supported
+     Electron major;
+   - the package consumer smoke test checks exports directly, but does not yet run
+     dedicated Vite, Webpack, Rollup, Next.js, and Vue fixture projects;
+   - malicious fixtures and regression vectors are extensive but finite; there is
+     no continuous coverage-guided HTML fuzzing service;
+   - performance measurements are recorded locally without shared-runner pass/fail
+     thresholds.
 
 3. **Package release workflow**
 

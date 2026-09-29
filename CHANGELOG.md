@@ -11,6 +11,12 @@ phase the public API may change between minor versions.
 
 - A real-process Electron example smoke test, included in CI and the release gate.
 
+### Changed
+
+- Testing documentation now records the complete local gate, current CI matrix,
+  Electron version split, latest verification snapshot, and remaining coverage
+  boundaries.
+
 ### Fixed
 
 - Electron example event logs now render untrusted navigation URLs as text instead
