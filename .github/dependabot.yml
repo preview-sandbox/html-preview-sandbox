@@ -4,10 +4,14 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 8
     groups:
       dev-dependencies:
+        applies-to: version-updates
         dependency-type: development
+        update-types:
+          - minor
+          - patch
     # dompurify is security-sensitive; surface its updates individually
     allow:
       - dependency-type: all
