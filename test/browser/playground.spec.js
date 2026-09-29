@@ -45,3 +45,56 @@ test('playground loads a dropped HTML file into the editor and renders it', asyn
   await expect(page.locator('#source')).toHaveValue(/Dropped content/);
   await expect(page.locator('#run-state')).toHaveText('rendered');
 });
+
+test('playground shows the input size against the default limit', async ({ page }) => {
+  await page.goto('/playground/');
+  await expect(page.locator('#run-state')).toHaveText('rendered');
+  await expect(page.locator('#input-meta')).toContainText('/ 10 MiB');
+});
+
+test('playground copies a structured sanitizer report', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__copiedText = '';
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        async writeText(value) {
+          window.__copiedText = value;
+        },
+      },
+    });
+  });
+  await page.goto('/playground/');
+  await expect(page.locator('#run-state')).toHaveText('rendered');
+
+  await page.locator('#copy-report').click();
+
+  const copied = await page.evaluate(() => JSON.parse(window.__copiedText));
+  expect(copied.input.maxBytes).toBe(10 * 1024 * 1024);
+  expect(copied.input.size).toBeGreaterThan(0);
+  expect(copied.sanitizeReport).toHaveProperty('removedTags');
+  await expect(page.locator('#copy-report')).toHaveText('Copied');
+});
+
+test('playground highlights sanitizer removals in the changes view', async ({ page }) => {
+  await page.goto('/playground/');
+  await page.locator('[data-sample="svg"]').click();
+  await expect(page.locator('#run-state')).toHaveText('rendered');
+
+  await page.locator('input[name="view"][value="changes"]').check({ force: true });
+
+  await expect(page.locator('#changes-view')).toBeVisible();
+  await expect(page.locator('#changes-original .diff-removed').first()).toBeVisible();
+  await expect(page.locator('#changes-original')).toContainText('javascript:');
+  await expect(page.locator('#changes-sanitized')).not.toContainText('javascript:');
+});
+
+test('playground renders inspector values as text rather than host markup', async ({ page }) => {
+  await page.goto('/playground/');
+  const payload = '<img data-injected="true" src=x>';
+
+  await page.locator('#host-rule').fill(payload);
+
+  await expect(page.locator('#policy-log')).toContainText(payload);
+  await expect(page.locator('#policy-log [data-injected="true"]')).toHaveCount(0);
+});

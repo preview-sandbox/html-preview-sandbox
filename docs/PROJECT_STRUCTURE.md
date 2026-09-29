@@ -21,6 +21,7 @@ html-preview-sandbox/
 ```text
 src/index.ts           Node/default package entry
 src/index.browser.ts   Browser package entry
+src/react.tsx          Optional React wrapper entry
 src/types.ts           Public API types
 src/decode.ts          Input normalization and charset handling
 src/sanitize.ts        Node DOMPurify + jsdom sanitizer entry
@@ -63,6 +64,7 @@ deprecated `baseUrl` that TypeScript 6 rejects). It generates:
 ```text
 dist/index.js            (tsup, Node/default)
 dist/index.browser.js    (tsup, browser)
+dist/react.js            (tsup, React wrapper)
 dist/*.d.ts              (tsc, per-module declarations; index.d.ts is the public entry)
 dist/*.map
 ```
@@ -76,8 +78,14 @@ Tests and local examples intentionally run against `dist` after build. This keep
 ## Test Layers
 
 - `test/*.test.js`: Node tests for decoding, CSP, sanitizer behavior, package metadata, and document assembly.
+- `test/sanitize-memory.test.js`: bounded-heap child-process regression for repeated Node/jsdom sanitization.
 - `test/browser/*.spec.js`: Playwright tests for browser iframe behavior, bridge forwarding, host navigation handling, external URL policy, and the example/Playground UIs (file upload, Web Component, sanitized-HTML view, shareable URL, drag-and-drop).
+- `scripts/test-package.mjs`: packs the real npm artifact, installs it into a temporary consumer, and smoke-tests the Node, browser, and React exports.
 - `fixtures/`: stable inputs for benign, malicious, and edge cases.
+
+From a repository checkout, `npm run benchmark` builds the package and measures
+input normalization, sanitization, complete document assembly, and raw/gzip
+entrypoint sizes. It is a local comparison tool rather than a CI pass/fail gate.
 
 ## Local Workbench
 
@@ -93,6 +101,9 @@ The Playground is a repository tool, not a published runtime API. It runs agains
 - external request reports;
 - current policy summary;
 - a "sanitized HTML" view of the exact pipeline output;
+- an original/sanitized comparison with removed tokens highlighted;
+- input byte-size and limit visibility;
+- a copyable JSON inspection report;
 - a shareable URL that encodes the input + preset.
 
 Run it with:

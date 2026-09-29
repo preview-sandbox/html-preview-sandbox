@@ -23,6 +23,10 @@ const preview = createPreview(document.querySelector('#preview'), {
 await preview.render(fileOrHtmlString);
 ```
 
+Concurrent `render()` calls resolve independently, while only the latest call
+may update the mounted iframe. This prevents a slow earlier file read from
+replacing newer content or policy output.
+
 Modern bundlers should resolve the package `browser` export automatically. Repository examples run against `dist/index.browser.js`; run `npm run build` before opening them locally.
 
 If your bundler or runtime does not honor the `browser` condition, import the explicit browser subpath:
@@ -88,6 +92,8 @@ See [`examples/electron/`](../examples/electron/) for a complete main-process in
 - [`examples/web/`](../examples/web/) — minimal string-input integration.
 - [`examples/file-upload/`](../examples/file-upload/) — `<input type=file>` + drag & drop, `render(file)`, showing detected encoding, sanitizer removals, and the `OVERSIZED` error state. The shape for attachment / upload / netdisk previews.
 - [`examples/web-component/`](../examples/web-component/) — `<safe-html-preview>` custom element (framework-agnostic).
+- [`examples/react/`](../examples/react/) — `SafeHtmlPreview` React wrapper,
+  including prop updates, callbacks, and forwarded-ref use.
 - [`examples/electron/`](../examples/electron/) — desktop host with main-process navigation interception.
 - [`examples/node-create-document/`](../examples/node-create-document/) — `createHtmlDocument` (full pipeline, no iframe) for self-managed webviews, SSR pre-processing, or CLI conversion.
 
@@ -113,7 +119,30 @@ Only enable `allowUnsafeSandboxTokens` for controlled, trusted content. For untr
 
 ## Large Files
 
-The default input size limit is 100 MB. Override it with `maxBytes` only after testing performance in your host application.
+The complete input pipeline has a default size limit of 10 MiB. It is enforced by
+`normalizeInput`, `createHtmlDocument`, and `createPreview().render()`. The
+low-level `sanitizeHtml(rawHtml)` helper accepts an already-decoded string and
+does not apply `maxBytes`; callers using it directly must reject oversized input
+before sanitization.
+
+HTML parsing cost is driven by DOM complexity, not just bytes: a compact,
+node-dense document can consume much more memory than its source size suggests.
+Raise `maxBytes` only after profiling representative and adversarial inputs in
+the host runtime.
+
+Successful full-pipeline calls expose the original byte size on the result. An
+oversized error exposes both measured and configured limits as numbers:
+
+```js
+try {
+  const result = await preview.render(file);
+  console.log(`Rendered ${result.size} input bytes`);
+} catch (error) {
+  if (error?.code === 'OVERSIZED') {
+    console.warn(`Rejected ${error.actualBytes} bytes; limit is ${error.maxBytes}`);
+  }
+}
+```
 
 ## Type Safety
 
@@ -138,7 +167,8 @@ Open `http://localhost:4173/playground/`. The workbench includes sample payloads
 
 ## Recommended Host Behavior
 
-- Show a clear empty/error state when sanitization removes all content.
+- Show a clear empty state when `sanitizeReport.strippedAll` is true. Empty
+  output is a successful safe render, not an exception.
 - Route external links through a user-visible action.
 - Keep `allow-same-origin` disabled unless you fully understand the risk.
 - Prefer `strict` or `offline` for untrusted attachments.

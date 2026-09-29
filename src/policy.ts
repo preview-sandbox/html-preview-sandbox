@@ -118,11 +118,12 @@ export function injectCspMeta(html: string, csp: string): string {
   return `<!doctype html><html><head>${meta}</head><body>${html}</body></html>`;
 }
 
-export function getSandboxAttribute(tokens = DEFAULT_SANDBOX_TOKENS, options: { allowUnsafeTokens?: boolean } = {}): string {
+export function getSandboxAttribute(
+  tokens = DEFAULT_SANDBOX_TOKENS,
+  options: { allowUnsafeTokens?: boolean } = {},
+): string {
   const allowUnsafeTokens = options.allowUnsafeTokens === true;
-  return [...new Set(tokens)]
-    .filter((token) => allowUnsafeTokens || !UNSAFE_SANDBOX_TOKENS.includes(token))
-    .join(' ');
+  return [...new Set(tokens)].filter((token) => allowUnsafeTokens || !UNSAFE_SANDBOX_TOKENS.includes(token)).join(' ');
 }
 
 export function isAllowedExternalUrl(url: string, protocols = DEFAULT_ALLOWED_EXTERNAL_PROTOCOLS): boolean {

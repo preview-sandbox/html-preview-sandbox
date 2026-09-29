@@ -1,11 +1,23 @@
 import { ERROR_CODES, PreviewError } from './errors.js';
 import type { PreviewInput } from './types.js';
 
-export const DEFAULT_MAX_BYTES = 100 * 1024 * 1024;
+// HTML parsing cost follows DOM complexity rather than byte size alone. Keep the
+// untrusted-input default conservative; hosts that accept larger reports must opt
+// in after profiling their own content shape and runtime.
+export const DEFAULT_MAX_BYTES = 10 * 1024 * 1024;
 
 const BOM_UTF8 = [0xef, 0xbb, 0xbf];
 const BOM_UTF16_LE = [0xff, 0xfe];
 const BOM_UTF16_BE = [0xfe, 0xff];
+
+function oversizedError(actualBytes: number, maxBytes: number): PreviewError {
+  return new PreviewError(
+    ERROR_CODES.OVERSIZED,
+    `HTML input is ${actualBytes} bytes; configured limit is ${maxBytes} bytes`,
+    undefined,
+    { actualBytes, maxBytes },
+  );
+}
 
 export interface DecodeResult {
   html: string;
@@ -43,7 +55,7 @@ export async function normalizeInput(input: PreviewInput, options: { maxBytes?: 
   if (typeof input === 'string') {
     const size = new TextEncoder().encode(input).byteLength;
     if (size > maxBytes) {
-      throw new PreviewError(ERROR_CODES.OVERSIZED, `HTML input exceeds ${maxBytes} bytes`);
+      throw oversizedError(size, maxBytes);
     }
     return { html: input, encoding: 'utf-8', usedBom: false, size };
   }
@@ -57,7 +69,7 @@ export async function normalizeInput(input: PreviewInput, options: { maxBytes?: 
     // Check Blob.size before reading — arrayBuffer() would materialize the whole
     // file into memory first, so an oversized Blob must be rejected up front.
     if (input.size > maxBytes) {
-      throw new PreviewError(ERROR_CODES.OVERSIZED, `HTML input exceeds ${maxBytes} bytes`);
+      throw oversizedError(input.size, maxBytes);
     }
     bytes = new Uint8Array(await input.arrayBuffer());
   } else {
@@ -65,7 +77,7 @@ export async function normalizeInput(input: PreviewInput, options: { maxBytes?: 
   }
 
   if (bytes.byteLength > maxBytes) {
-    throw new PreviewError(ERROR_CODES.OVERSIZED, `HTML input exceeds ${maxBytes} bytes`);
+    throw oversizedError(bytes.byteLength, maxBytes);
   }
 
   return decodeHtmlBytes(bytes);

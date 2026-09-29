@@ -42,7 +42,11 @@ function createWindow() {
   win.webContents.on('did-start-navigation', (_event, url, isInPlace, isMainFrame, processId, routingId) => {
     if (isMainFrame || isInPlace) return;
     let frame = null;
-    try { frame = webFrameMain.fromId(processId, routingId); } catch (_) { /* ignore */ }
+    try {
+      frame = webFrameMain.fromId(processId, routingId);
+    } catch (_) {
+      /* ignore */
+    }
     forward(url, frame);
   });
 

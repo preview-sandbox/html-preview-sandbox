@@ -6,6 +6,7 @@ import type { SanitizeOptions, SanitizeReport } from './types.js';
 // server (SSR, Node tooling) must not touch `window` — only calling it does.
 let sanitizer: ReturnType<typeof createSanitizer> | undefined;
 
+/** Low-level sanitizer. Callers must enforce their own input-size limit. */
 export function sanitizeHtml(rawHtml: string, options: SanitizeOptions = {}): { html: string; report: SanitizeReport } {
   sanitizer ??= createSanitizer(window, createDOMPurify);
   return sanitizer(rawHtml, options);

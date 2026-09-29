@@ -62,6 +62,7 @@
             <div class="segmented view-toggle" aria-label="View mode">
               <label><input type="radio" name="view" value="preview" checked><span>preview</span></label>
               <label><input type="radio" name="view" value="html"><span>sanitized HTML</span></label>
+              <label><input type="radio" name="view" value="changes"><span>changes</span></label>
             </div>
             <div class="policy-controls">
               <label><input type="checkbox" id="protocol-https" checked> https</label>
@@ -73,6 +74,16 @@
         <div class="preview-body">
           <div id="preview"></div>
           <pre id="sanitized-view" class="sanitized-view" hidden><code></code></pre>
+          <div id="changes-view" class="changes-view" hidden>
+            <section class="diff-pane">
+              <div class="diff-head">Original <span id="changes-summary">0 removals</span></div>
+              <pre><code id="changes-original"></code></pre>
+            </section>
+            <section class="diff-pane">
+              <div class="diff-head">Sanitized</div>
+              <pre><code id="changes-sanitized"></code></pre>
+            </section>
+          </div>
         </div>
       </section>
 
@@ -82,7 +93,10 @@
             <h2 id="inspector-title">Inspector</h2>
             <p id="run-state">idle</p>
           </div>
-          <button id="clear-events">Clear</button>
+          <div class="inspector-actions">
+            <button id="copy-report" title="Copy the current sanitizer report as JSON">Copy report</button>
+            <button id="clear-events">Clear</button>
+          </div>
         </div>
 
         <div class="policy-rail" aria-label="Policy summary">

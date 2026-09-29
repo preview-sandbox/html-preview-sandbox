@@ -15,9 +15,9 @@ test('external links are bridged to the host callback', async ({ page }) => {
   await page.goto('/examples/web/');
 
   await page.frameLocator('iframe[title="HTML preview sandbox"]').getByText('External link').click();
-  await expect.poll(() => page.evaluate(() => window.externalEvents)).toEqual([
-    { url: 'https://example.com/', source: 'link' },
-  ]);
+  await expect
+    .poll(() => page.evaluate(() => window.externalEvents))
+    .toEqual([{ url: 'https://example.com/', source: 'link' }]);
 });
 
 test('external link policy blocks disallowed protocols and custom URL decisions', async ({ page }) => {
@@ -45,9 +45,9 @@ test('external link policy blocks disallowed protocols and custom URL decisions'
     await window.preview.render('<a href="https://allowed.example/path">Allowed link</a>');
   });
   await page.frameLocator('iframe[title="HTML preview sandbox"]').getByText('Allowed link').click();
-  await expect.poll(() => page.evaluate(() => window.externalEvents)).toEqual([
-    { url: 'https://allowed.example/path', source: 'link' },
-  ]);
+  await expect
+    .poll(() => page.evaluate(() => window.externalEvents))
+    .toEqual([{ url: 'https://allowed.example/path', source: 'link' }]);
 });
 
 test('host navigation attempts remount the last trusted srcdoc', async ({ page }) => {
@@ -55,9 +55,32 @@ test('host navigation attempts remount the last trusted srcdoc', async ({ page }
   await expect(page.locator('iframe[title="HTML preview sandbox"]')).toHaveCount(1);
 
   await page.evaluate(() => window.preview.notifyNavigationAttempt('https://example.com/nav'));
-  await expect.poll(() => page.evaluate(() => window.externalEvents)).toEqual([
-    { url: 'https://example.com/nav', source: 'navigation' },
-  ]);
+  await expect
+    .poll(() => page.evaluate(() => window.externalEvents))
+    .toEqual([{ url: 'https://example.com/nav', source: 'navigation' }]);
 
-  await expect(page.frameLocator('iframe[title="HTML preview sandbox"]').getByText('Hello from the sandbox')).toBeVisible();
+  await expect(
+    page.frameLocator('iframe[title="HTML preview sandbox"]').getByText('Hello from the sandbox'),
+  ).toBeVisible();
+});
+
+test('a slower earlier render cannot overwrite the latest render', async ({ page }) => {
+  await page.goto('/examples/web/');
+
+  const finalHtml = await page.evaluate(async () => {
+    class SlowBlob extends Blob {
+      async arrayBuffer() {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        return super.arrayBuffer();
+      }
+    }
+
+    const earlier = window.preview.render(new SlowBlob(['<h1 id="earlier">Earlier document</h1>']));
+    const latest = window.preview.render('<h1 id="latest">Latest document</h1>');
+    await Promise.all([earlier, latest]);
+    return window.preview.iframe.srcdoc;
+  });
+
+  expect(finalHtml).toContain('id="latest"');
+  expect(finalHtml).not.toContain('id="earlier"');
 });

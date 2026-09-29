@@ -25,6 +25,7 @@ export interface SanitizeReport {
   removedTags: Array<{ tag: string; count: number }>;
   removedAttributes: Array<{ tag: string; attr: string; count: number }>;
   removedSchemes: Array<{ scheme: string; count: number }>;
+  /** True when no body text/elements or head runtime resources remain. Empty input also reports true. */
   strippedAll: boolean;
 }
 
@@ -36,16 +37,26 @@ export interface CspViolationReport {
   sample?: string;
 }
 
-export type PreviewErrorCode = 'OVERSIZED' | 'DECODE_FAILED' | 'EMPTY_AFTER_SANITIZE' | 'RENDER_FAILED';
+export type PreviewErrorCode =
+  | 'OVERSIZED'
+  | 'DECODE_FAILED'
+  /** @deprecated Reserved for compatibility; current renders report empty output through SanitizeReport.strippedAll. */
+  | 'EMPTY_AFTER_SANITIZE'
+  | 'RENDER_FAILED';
 
 export interface PreviewErrorShape extends Error {
   code: PreviewErrorCode;
   cause?: unknown;
+  /** Present for OVERSIZED errors. */
+  actualBytes?: number;
+  /** Present for OVERSIZED errors. */
+  maxBytes?: number;
 }
 
 export interface PreviewOptions {
   csp?: CspPreset | CspPolicy;
   sanitize?: SanitizeOptions;
+  /** Byte limit for normalizeInput and the preview/document pipeline. Not used by direct sanitizeHtml calls. */
   maxBytes?: number;
   sandboxTokens?: string[];
   allowUnsafeSandboxTokens?: boolean;
@@ -63,10 +74,13 @@ export interface PreviewOptions {
 export interface RenderResult {
   html: string;
   encoding: string;
+  /** Original input size in bytes before sanitization and document injection. */
+  size: number;
   sanitizeReport: SanitizeReport;
 }
 
 export interface PreviewHandle {
+  /** Concurrent calls resolve independently, but only the latest call may update the iframe. */
   render(input: PreviewInput): Promise<RenderResult>;
   updateOptions(patch: Partial<PreviewOptions>): void;
   notifyNavigationAttempt(url: string, context?: { source: OpenExternalSource }): void;

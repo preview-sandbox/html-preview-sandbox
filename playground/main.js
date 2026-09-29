@@ -1,4 +1,10 @@
-import { createPreview, getSandboxAttribute, DEFAULT_SANDBOX_TOKENS } from '../dist/index.browser.js';
+import {
+  createPreview,
+  sanitizeHtml,
+  getSandboxAttribute,
+  DEFAULT_MAX_BYTES,
+  DEFAULT_SANDBOX_TOKENS,
+} from '../dist/index.browser.js';
 
 const samples = {
   report: `<!doctype html>
@@ -82,10 +88,17 @@ const httpsProtocol = document.querySelector('#protocol-https');
 const mailProtocol = document.querySelector('#protocol-mail');
 const hostRule = document.querySelector('#host-rule');
 const shareButton = document.querySelector('#share');
+const copyReportButton = document.querySelector('#copy-report');
 const sanitizedView = document.querySelector('#sanitized-view');
+const changesView = document.querySelector('#changes-view');
+const changesOriginal = document.querySelector('#changes-original');
+const changesSanitized = document.querySelector('#changes-sanitized');
+const changesSummary = document.querySelector('#changes-summary');
 const editorPanel = document.querySelector('.editor-panel');
 
 let lastHtml = '';
+let lastSanitizedHtml = '';
+let lastResult = null;
 
 source.value = samples.report;
 
@@ -142,17 +155,49 @@ function allowExternalUrl(url) {
 }
 
 function countRemoved(report) {
-  return [...report.removedTags, ...report.removedAttributes, ...report.removedSchemes]
-    .reduce((total, item) => total + item.count, 0);
+  return [...report.removedTags, ...report.removedAttributes, ...report.removedSchemes].reduce(
+    (total, item) => total + item.count,
+    0,
+  );
 }
 
 function bytesOf(value) {
   return new TextEncoder().encode(value).byteLength;
 }
 
+function formatBytes(bytes) {
+  if (bytes >= 1024 * 1024) {
+    const value = bytes / (1024 * 1024);
+    return `${Number.isInteger(value) ? value : value.toFixed(1)} MiB`;
+  }
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KiB`;
+  return `${bytes} bytes`;
+}
+
+function updateInputMeta() {
+  inputMeta.textContent = `${formatBytes(bytesOf(source.value))} / ${formatBytes(DEFAULT_MAX_BYTES)}`;
+}
+
 function setEventListState(element, emptyText, hasItems, tone = '') {
   element.className = `event-list ${hasItems ? tone : 'empty'}`.trim();
   if (!hasItems) element.textContent = emptyText;
+}
+
+function renderEventRows(element, rows, tone = '') {
+  element.className = `event-list ${tone}`.trim();
+  element.replaceChildren(
+    ...rows.map(([label, value]) => {
+      const row = document.createElement('div');
+      row.className = 'event-row';
+
+      const labelNode = document.createElement('span');
+      labelNode.textContent = label;
+      const valueNode = document.createElement('code');
+      valueNode.textContent = value;
+      row.append(labelNode, valueNode);
+      return row;
+    }),
+  );
 }
 
 function renderSanitize(report) {
@@ -161,14 +206,13 @@ function renderSanitize(report) {
     ['Attributes', report.removedAttributes.map((item) => `${item.tag}.${item.attr} x${item.count}`)],
     ['Schemes', report.removedSchemes.map((item) => `${item.scheme} x${item.count}`)],
   ];
-  const rows = groups.flatMap(([label, values]) => values.map((value) => `<div class="event-row"><span>${label}</span><code>${value}</code></div>`));
+  const rows = groups.flatMap(([label, values]) => values.map((value) => [label, value]));
   sanitizeCount.textContent = String(countRemoved(report));
   if (!rows.length) {
     setEventListState(sanitizeLog, 'No sanitizer removals.', false);
     return;
   }
-  sanitizeLog.className = 'event-list';
-  sanitizeLog.innerHTML = rows.join('');
+  renderEventRows(sanitizeLog, rows);
 }
 
 function renderCsp() {
@@ -177,13 +221,11 @@ function renderCsp() {
     setEventListState(cspLog, 'No violations yet.', false);
     return;
   }
-  cspLog.className = 'event-list warning';
-  cspLog.innerHTML = cspEvents.slice(0, 8).map((event) => `
-    <div class="event-row">
-      <span>${event.effectiveDirective || 'blocked'}</span>
-      <code>${event.blockedURI || 'inline'}</code>
-    </div>
-  `).join('');
+  renderEventRows(
+    cspLog,
+    cspEvents.slice(0, 8).map((event) => [event.effectiveDirective || 'blocked', event.blockedURI || 'inline']),
+    'warning',
+  );
 }
 
 function renderExternal() {
@@ -192,23 +234,20 @@ function renderExternal() {
     setEventListState(externalLog, 'No requests yet.', false);
     return;
   }
-  externalLog.className = 'event-list';
-  externalLog.innerHTML = externalEvents.slice(0, 8).map((event) => `
-    <div class="event-row">
-      <span>${event.source}</span>
-      <code>${event.url}</code>
-    </div>
-  `).join('');
+  renderEventRows(
+    externalLog,
+    externalEvents.slice(0, 8).map((event) => [event.source, event.url]),
+  );
 }
 
 function renderPolicy() {
   const sandbox = getSandboxAttribute(DEFAULT_SANDBOX_TOKENS);
-  policyLog.innerHTML = [
+  renderEventRows(policyLog, [
     ['preset', currentPreset()],
     ['protocols', currentProtocols().join(' ') || 'none'],
     ['host rule', hostRule.value.trim() || 'any host'],
     ['sandbox', sandbox],
-  ].map(([key, value]) => `<div class="event-row"><span>${key}</span><code>${value}</code></div>`).join('');
+  ]);
 }
 
 function clearEvents() {
@@ -221,7 +260,7 @@ function clearEvents() {
 async function render() {
   clearEvents();
   runState.textContent = 'rendering';
-  inputMeta.textContent = `${bytesOf(source.value).toLocaleString()} bytes`;
+  updateInputMeta();
   preview.updateOptions({
     csp: currentPreset(),
     externalProtocols: currentProtocols(),
@@ -230,8 +269,11 @@ async function render() {
   const started = performance.now();
   const result = await preview.render(source.value);
   const elapsed = Math.max(1, Math.round(performance.now() - started));
+  const sanitized = sanitizeHtml(source.value);
+  lastResult = result;
   lastHtml = result.html;
-  previewMeta.textContent = `${result.encoding} / ${elapsed}ms`;
+  lastSanitizedHtml = sanitized.html;
+  previewMeta.textContent = `${result.encoding} / ${formatBytes(result.size)} / ${elapsed}ms`;
   runState.textContent = 'rendered';
   renderPolicy();
   updateView();
@@ -247,11 +289,82 @@ function currentView() {
 // the rendered result.
 function updateView() {
   const showHtml = currentView() === 'html';
+  const showChanges = currentView() === 'changes';
   sanitizedView.hidden = !showHtml;
-  previewHost.hidden = showHtml;
+  changesView.hidden = !showChanges;
+  previewHost.hidden = showHtml || showChanges;
   if (showHtml) {
     sanitizedView.querySelector('code').textContent = lastHtml || 'Render first to see the sanitized document.';
   }
+  if (showChanges) renderChanges();
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function appendOriginalDiff(html, report) {
+  changesOriginal.replaceChildren();
+  if (!report) {
+    changesOriginal.textContent = 'Render first to inspect sanitizer changes.';
+    return;
+  }
+
+  const removedTags = new Set(report.removedTags.map((item) => item.tag.toLowerCase()));
+  const removedAttributes = report.removedAttributes.map((item) => ({
+    tag: item.tag.toLowerCase(),
+    attr: item.attr.toLowerCase(),
+  }));
+  const tagPattern = /<[^>]*>/g;
+  let cursor = 0;
+
+  for (const match of html.matchAll(tagPattern)) {
+    changesOriginal.append(document.createTextNode(html.slice(cursor, match.index)));
+    const token = match[0];
+    const tag = token.match(/^<\/?\s*([^\s/>]+)/)?.[1]?.toLowerCase() ?? '';
+    const removedAttribute = removedAttributes.some(
+      (item) =>
+        (item.tag === '*' || item.tag === tag) && new RegExp(`\\b${escapeRegExp(item.attr)}\\s*=`, 'i').test(token),
+    );
+    const tokenNode = document.createElement('span');
+    tokenNode.textContent = token;
+    if (removedTags.has(tag) || removedAttribute) {
+      tokenNode.className = 'diff-removed';
+      tokenNode.title = removedTags.has(tag) ? `Removed <${tag}> element` : 'Contains a removed attribute';
+    }
+    changesOriginal.append(tokenNode);
+    cursor = match.index + token.length;
+  }
+  changesOriginal.append(document.createTextNode(html.slice(cursor)));
+}
+
+function renderChanges() {
+  appendOriginalDiff(source.value, lastSanitizeReport);
+  changesSanitized.textContent = lastSanitizedHtml || 'Render first to inspect sanitizer changes.';
+  const removed = lastSanitizeReport ? countRemoved(lastSanitizeReport) : 0;
+  changesSummary.textContent = `${removed} removal${removed === 1 ? '' : 's'}`;
+}
+
+async function copyReport() {
+  if (!lastSanitizeReport || !lastResult) return;
+  const report = {
+    input: {
+      size: lastResult.size,
+      maxBytes: DEFAULT_MAX_BYTES,
+      encoding: lastResult.encoding,
+    },
+    preset: currentPreset(),
+    sanitizeReport: lastSanitizeReport,
+  };
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(report, null, 2));
+    copyReportButton.textContent = 'Copied';
+  } catch {
+    copyReportButton.textContent = 'Copy failed';
+  }
+  setTimeout(() => {
+    copyReportButton.textContent = 'Copy report';
+  }, 1500);
 }
 
 // --- Shareable URL: encode the input + preset into the location hash ---
@@ -278,7 +391,9 @@ async function share() {
   } catch {
     shareButton.textContent = 'URL updated';
   }
-  setTimeout(() => { shareButton.textContent = 'Share'; }, 1500);
+  setTimeout(() => {
+    shareButton.textContent = 'Share';
+  }, 1500);
 }
 
 function restoreFromHash() {
@@ -301,7 +416,7 @@ function readDroppedFile(file) {
   const reader = new FileReader();
   reader.onload = () => {
     source.value = String(reader.result || '');
-    inputMeta.textContent = `${bytesOf(source.value).toLocaleString()} bytes`;
+    updateInputMeta();
     render();
   };
   reader.readAsText(file);
@@ -318,7 +433,7 @@ function selectSample(name) {
 renderButton.addEventListener('click', render);
 clearButton.addEventListener('click', clearEvents);
 source.addEventListener('input', () => {
-  inputMeta.textContent = `${bytesOf(source.value).toLocaleString()} bytes`;
+  updateInputMeta();
 });
 hostRule.addEventListener('input', renderPolicy);
 httpsProtocol.addEventListener('change', render);
@@ -337,12 +452,19 @@ for (const input of document.querySelectorAll('input[name="view"]')) {
 }
 
 shareButton.addEventListener('click', share);
+copyReportButton.addEventListener('click', copyReport);
 
 for (const type of ['dragenter', 'dragover']) {
-  editorPanel.addEventListener(type, (event) => { event.preventDefault(); editorPanel.classList.add('dropping'); });
+  editorPanel.addEventListener(type, (event) => {
+    event.preventDefault();
+    editorPanel.classList.add('dropping');
+  });
 }
 for (const type of ['dragleave', 'drop']) {
-  editorPanel.addEventListener(type, (event) => { event.preventDefault(); editorPanel.classList.remove('dropping'); });
+  editorPanel.addEventListener(type, (event) => {
+    event.preventDefault();
+    editorPanel.classList.remove('dropping');
+  });
 }
 editorPanel.addEventListener('drop', (event) => readDroppedFile(event.dataTransfer?.files?.[0]));
 

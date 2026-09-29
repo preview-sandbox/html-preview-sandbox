@@ -42,9 +42,6 @@ export const SafeHtmlPreview = forwardRef<PreviewHandle | null, SafeHtmlPreviewP
   // Serializes render() calls so a slow earlier render can't overwrite a later one.
   const chainRef = useRef<Promise<unknown>>(Promise.resolve());
 
-  // The forwarded ref is stable for a component instance; recreating the
-  // preview on ref identity change would throw away the iframe for nothing.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-once by design
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return undefined;
@@ -60,15 +57,23 @@ export const SafeHtmlPreview = forwardRef<PreviewHandle | null, SafeHtmlPreviewP
         if (optionsRef.current.onError) optionsRef.current.onError(error);
         else (optionsRef.current.logger ?? console).error('html-preview-sandbox render failed:', error);
       },
+      logger: {
+        info: (...args) => optionsRef.current.logger?.info(...args),
+        warn: (...args) => optionsRef.current.logger?.warn(...args),
+        error: (...args) => optionsRef.current.logger?.error(...args),
+      },
     });
     handleRef.current = handle;
-    assignRef(ref, handle);
     return () => {
-      assignRef(ref, null);
       handleRef.current = null;
       handle.destroy();
     };
   }, []);
+
+  useEffect(() => {
+    assignRef(ref, handleRef.current);
+    return () => assignRef(ref, null);
+  }, [ref]);
 
   // Policy props change the produced document, so they need updateOptions plus
   // a re-render of the current source. Serialized so inline literals in JSX

@@ -38,9 +38,18 @@ const preview = createPreview(document.querySelector('#preview'), {
 await preview.render(fileOrHtmlString);
 ```
 
+Concurrent `render()` calls use latest-call-wins semantics for the mounted
+iframe. Each call still resolves with its own `RenderResult`, but an older slow
+input cannot replace a newer preview.
+
+`RenderResult.size` reports the original input byte length. When the input
+exceeds `maxBytes`, the `OVERSIZED` error includes numeric `actualBytes` and
+`maxBytes` fields so hosts can render a useful message without parsing text.
+
 ## Runtime Entrypoints
 
-The package is **ESM-only** and requires Node 18+ for the Node/default entrypoint.
+The package is **ESM-only**. The Node/default entrypoint follows jsdom's runtime
+range: Node 20.19+, Node 22.13+, or Node 24+.
 It exposes separate Node and browser builds through package export conditions:
 
 - Node/default import: uses DOMPurify with jsdom.
@@ -130,6 +139,7 @@ External links are also fail-closed. The default protocol allowlist is `http:`, 
 - [Security Model](docs/SECURITY_MODEL.md)
 - [Sanitizer Decision](docs/SANITIZER_DECISION.md)
 - [Browser Support](docs/BROWSER_SUPPORT.md)
+- [Migrating to v0.3](docs/MIGRATION.md)
 - [Project Structure](docs/PROJECT_STRUCTURE.md)
 - [Branching & Releases](docs/BRANCHING.md)
 - [Roadmap](docs/ROADMAP.md)
@@ -161,17 +171,42 @@ npm run build
 
 The type check validates the TypeScript source and generated public API surface. The Node test suite covers decoding, CSP generation, injection order, protocol filtering, and sanitization reports. The Playwright suite verifies real browser iframe sandboxing and external-link bridging, plus the Web example, file-upload example, Web Component, and Playground behaviors.
 
+Empty or fully stripped input produces a safe blank document rather than throwing.
+Check `sanitizeReport.strippedAll` to show an empty state in the host UI. The
+legacy `EMPTY_AFTER_SANITIZE` error code remains in the type surface for
+compatibility but is not emitted by the current document pipeline.
+
 In CI, install the Playwright browser before `npm run test:browser`:
 
 ```bash
 npx playwright install --with-deps chromium firefox webkit
 ```
 
-Run the default local quality gate before publishing changes:
+Run the complete local quality gate before publishing changes:
 
 ```bash
-npm run check
+npm run check && npm run test:browser
 ```
+
+From a repository checkout, run machine-local performance and bundle-size
+measurements with:
+
+```bash
+npm run benchmark
+```
+
+The benchmark reports median/p95 pipeline timings for 100 KiB and 1 MiB inputs,
+plus raw and gzip sizes for the built entrypoints. Results are intentionally not
+used as CI thresholds because runner performance varies.
+
+The full preview/document pipeline has a 10 MiB default input limit.
+`normalizeInput`, `createHtmlDocument`, and `createPreview().render()` enforce
+`maxBytes`. The low-level `sanitizeHtml(rawHtml)` helper accepts an already decoded
+string and does not apply this limit, so direct callers must bound the input before
+calling it. The limit is a pre-parse resource guard, not a memory guarantee: hosts
+that accept public uploads may want a 1–2 MiB limit, while hosts that raise it should
+benchmark node-dense adversarial HTML because DOM memory cost can be far larger than
+the source file.
 
 ## Playground
 
@@ -184,7 +219,7 @@ npm run serve
 
 Then visit `http://localhost:4173/playground/`.
 
-The Playground is a three-panel workbench with HTML input, sandboxed preview, and an inspector for sanitizer removals, CSP violations, external requests, and current policy. It also includes sample payloads plus controls for CSP preset, external protocols, and host suffix filtering. You can drag an HTML file onto the editor, toggle a "sanitized HTML" view to inspect the exact document the pipeline produced, and use Share to encode the input + preset into a shareable URL.
+The Playground is a three-panel workbench with HTML input, sandboxed preview, and an inspector for sanitizer removals, CSP violations, external requests, and current policy. It also includes sample payloads plus controls for CSP preset, external protocols, and host suffix filtering. You can drag an HTML file onto the editor, inspect original and sanitized HTML side by side with removed tokens highlighted, copy a machine-readable report, and use Share to encode the input + preset into a shareable URL. The input meter shows the current byte size against the configured 10 MiB limit.
 
 ### Hosted Playground
 

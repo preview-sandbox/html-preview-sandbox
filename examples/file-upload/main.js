@@ -10,7 +10,7 @@ const preview = createPreview($('preview'), {
     window.open(url, '_blank', 'noopener,noreferrer');
   },
   onError(err) {
-    // Fires for OVERSIZED / DECODE_FAILED / EMPTY_AFTER_SANITIZE / RENDER_FAILED.
+    // Fires for OVERSIZED / DECODE_FAILED / RENDER_FAILED.
     showError(err.code, err.message);
   },
 });
@@ -68,9 +68,15 @@ $('file').addEventListener('change', (e) => handleFile(e.target.files[0]));
 // Drag & drop
 const drop = $('drop');
 for (const type of ['dragenter', 'dragover']) {
-  drop.addEventListener(type, (e) => { e.preventDefault(); drop.classList.add('dragover'); });
+  drop.addEventListener(type, (e) => {
+    e.preventDefault();
+    drop.classList.add('dragover');
+  });
 }
 for (const type of ['dragleave', 'drop']) {
-  drop.addEventListener(type, (e) => { e.preventDefault(); drop.classList.remove('dragover'); });
+  drop.addEventListener(type, (e) => {
+    e.preventDefault();
+    drop.classList.remove('dragover');
+  });
 }
 drop.addEventListener('drop', (e) => handleFile(e.dataTransfer?.files?.[0]));

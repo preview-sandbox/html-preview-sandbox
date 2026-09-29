@@ -1,59 +1,244 @@
 import type { SanitizeOptions, SanitizeReport } from './types.js';
 
 const DEFAULT_ALLOWED_TAGS = [
-  'html', 'head', 'body', 'title', 'meta', 'link', 'style', 'script',
-  'main', 'section', 'article', 'aside', 'header', 'footer', 'nav',
-  'div', 'span', 'p', 'br', 'hr', 'pre', 'code', 'blockquote',
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-  'ul', 'ol', 'li', 'dl', 'dt', 'dd',
-  'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'colgroup', 'col',
-  'a', 'strong', 'b', 'em', 'i', 'u', 's', 'small', 'mark', 'sub', 'sup',
-  'img', 'picture', 'source', 'audio', 'video', 'canvas',
-  'form', 'label', 'input', 'button', 'select', 'option', 'optgroup', 'textarea',
-  'fieldset', 'legend', 'details', 'summary',
-  'svg', 'g', 'defs', 'symbol', 'use', 'desc',
-  'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'path',
-  'text', 'tspan', 'textPath', 'linearGradient', 'radialGradient', 'stop',
-  'pattern', 'mask', 'clipPath', 'filter', 'feGaussianBlur', 'feColorMatrix',
-  'feOffset', 'feMerge', 'feMergeNode', 'feBlend', 'feFlood', 'feComposite',
-  'feTurbulence', 'feDisplacementMap', 'feDropShadow', 'marker',
-  'animate', 'animateTransform', 'animateMotion', 'set', 'foreignObject',
+  'html',
+  'head',
+  'body',
+  'title',
+  'meta',
+  'link',
+  'style',
+  'script',
+  'main',
+  'section',
+  'article',
+  'aside',
+  'header',
+  'footer',
+  'nav',
+  'div',
+  'span',
+  'p',
+  'br',
+  'hr',
+  'pre',
+  'code',
+  'blockquote',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'ul',
+  'ol',
+  'li',
+  'dl',
+  'dt',
+  'dd',
+  'table',
+  'thead',
+  'tbody',
+  'tfoot',
+  'tr',
+  'th',
+  'td',
+  'caption',
+  'colgroup',
+  'col',
+  'a',
+  'strong',
+  'b',
+  'em',
+  'i',
+  'u',
+  's',
+  'small',
+  'mark',
+  'sub',
+  'sup',
+  'img',
+  'picture',
+  'source',
+  'audio',
+  'video',
+  'canvas',
+  'form',
+  'label',
+  'input',
+  'button',
+  'select',
+  'option',
+  'optgroup',
+  'textarea',
+  'fieldset',
+  'legend',
+  'details',
+  'summary',
+  'svg',
+  'g',
+  'defs',
+  'symbol',
+  'use',
+  'desc',
+  'rect',
+  'circle',
+  'ellipse',
+  'line',
+  'polyline',
+  'polygon',
+  'path',
+  'text',
+  'tspan',
+  'textPath',
+  'linearGradient',
+  'radialGradient',
+  'stop',
+  'pattern',
+  'mask',
+  'clipPath',
+  'filter',
+  'feGaussianBlur',
+  'feColorMatrix',
+  'feOffset',
+  'feMerge',
+  'feMergeNode',
+  'feBlend',
+  'feFlood',
+  'feComposite',
+  'feTurbulence',
+  'feDisplacementMap',
+  'feDropShadow',
+  'marker',
+  'animate',
+  'animateTransform',
+  'animateMotion',
+  'set',
+  'foreignObject',
 ];
 
 const DISALLOWED_TAGS = ['base', 'object', 'embed', 'applet'];
 
-const GLOBAL_ATTRS = [
-  'class', 'id', 'style', 'title', 'lang', 'dir', 'role', 'tabindex', 'hidden',
-  'aria-*', 'data-*',
-];
+const GLOBAL_ATTRS = ['class', 'id', 'style', 'title', 'lang', 'dir', 'role', 'tabindex', 'hidden', 'aria-*', 'data-*'];
 
 const SAFE_INLINE_EVENTS = [
-  'onclick', 'onauxclick', 'ondblclick',
-  'oninput', 'onchange', 'onsubmit', 'onreset',
-  'onkeydown', 'onkeyup', 'onkeypress',
-  'onfocusin', 'onfocusout',
+  'onclick',
+  'onauxclick',
+  'ondblclick',
+  'oninput',
+  'onchange',
+  'onsubmit',
+  'onreset',
+  'onkeydown',
+  'onkeyup',
+  'onkeypress',
+  'onfocusin',
+  'onfocusout',
 ];
 
 const SVG_ATTRS = [
-  'x', 'y', 'cx', 'cy', 'r', 'rx', 'ry', 'x1', 'y1', 'x2', 'y2',
-  'width', 'height', 'd', 'points', 'transform', 'fill', 'fill-opacity',
-  'fill-rule', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin',
-  'stroke-dasharray', 'stroke-dashoffset', 'stroke-opacity', 'stroke-miterlimit',
-  'opacity', 'color', 'visibility', 'display', 'vector-effect',
-  'viewBox', 'preserveAspectRatio', 'xmlns', 'xmlns:xlink',
-  'href', 'xlink:href', 'offset', 'gradientUnits', 'gradientTransform',
-  'spreadMethod', 'stop-color', 'stop-opacity', 'text-anchor',
-  'dominant-baseline', 'alignment-baseline', 'font-family', 'font-size',
-  'font-weight', 'font-style', 'letter-spacing', 'word-spacing',
-  'text-decoration', 'dx', 'dy', 'rotate', 'startOffset', 'textLength',
-  'lengthAdjust', 'clip-path', 'clip-rule', 'mask', 'filter', 'stdDeviation',
-  'in', 'in2', 'result', 'mode', 'flood-color', 'flood-opacity', 'edgeMode',
-  'patternUnits', 'patternTransform', 'patternContentUnits', 'markerWidth',
-  'markerHeight', 'refX', 'refY', 'orient', 'markerUnits', 'marker-start',
-  'marker-mid', 'marker-end', 'attributeName', 'attributeType', 'from', 'to',
-  'by', 'values', 'dur', 'repeatCount', 'repeatDur', 'begin', 'end',
-  'calcMode', 'keyTimes', 'keySplines', 'additive', 'accumulate',
-  'fill-mode', 'restart',
+  'x',
+  'y',
+  'cx',
+  'cy',
+  'r',
+  'rx',
+  'ry',
+  'x1',
+  'y1',
+  'x2',
+  'y2',
+  'width',
+  'height',
+  'd',
+  'points',
+  'transform',
+  'fill',
+  'fill-opacity',
+  'fill-rule',
+  'stroke',
+  'stroke-width',
+  'stroke-linecap',
+  'stroke-linejoin',
+  'stroke-dasharray',
+  'stroke-dashoffset',
+  'stroke-opacity',
+  'stroke-miterlimit',
+  'opacity',
+  'color',
+  'visibility',
+  'display',
+  'vector-effect',
+  'viewBox',
+  'preserveAspectRatio',
+  'xmlns',
+  'xmlns:xlink',
+  'href',
+  'xlink:href',
+  'offset',
+  'gradientUnits',
+  'gradientTransform',
+  'spreadMethod',
+  'stop-color',
+  'stop-opacity',
+  'text-anchor',
+  'dominant-baseline',
+  'alignment-baseline',
+  'font-family',
+  'font-size',
+  'font-weight',
+  'font-style',
+  'letter-spacing',
+  'word-spacing',
+  'text-decoration',
+  'dx',
+  'dy',
+  'rotate',
+  'startOffset',
+  'textLength',
+  'lengthAdjust',
+  'clip-path',
+  'clip-rule',
+  'mask',
+  'filter',
+  'stdDeviation',
+  'in',
+  'in2',
+  'result',
+  'mode',
+  'flood-color',
+  'flood-opacity',
+  'edgeMode',
+  'patternUnits',
+  'patternTransform',
+  'patternContentUnits',
+  'markerWidth',
+  'markerHeight',
+  'refX',
+  'refY',
+  'orient',
+  'markerUnits',
+  'marker-start',
+  'marker-mid',
+  'marker-end',
+  'attributeName',
+  'attributeType',
+  'from',
+  'to',
+  'by',
+  'values',
+  'dur',
+  'repeatCount',
+  'repeatDur',
+  'begin',
+  'end',
+  'calcMode',
+  'keyTimes',
+  'keySplines',
+  'additive',
+  'accumulate',
+  'fill-mode',
+  'restart',
 ];
 
 const ATTRS_BY_TAG: Record<string, string[]> = {
@@ -62,7 +247,21 @@ const ATTRS_BY_TAG: Record<string, string[]> = {
   meta: ['charset', 'name', 'content', 'http-equiv', 'property'],
   img: ['src', 'alt', 'width', 'height', 'loading', 'decoding', 'srcset', 'sizes'],
   source: ['src', 'srcset', 'type', 'media'],
-  input: ['type', 'name', 'value', 'placeholder', 'min', 'max', 'step', 'required', 'checked', 'disabled', 'readonly', 'pattern', 'maxlength'],
+  input: [
+    'type',
+    'name',
+    'value',
+    'placeholder',
+    'min',
+    'max',
+    'step',
+    'required',
+    'checked',
+    'disabled',
+    'readonly',
+    'pattern',
+    'maxlength',
+  ],
   button: ['type', 'name', 'value', 'disabled'],
   select: ['name', 'value', 'multiple', 'disabled', 'required'],
   option: ['value', 'selected', 'disabled'],
@@ -89,7 +288,11 @@ function emptyReport(): SanitizeReport {
 
 type CountedRecord = { count: number; [key: string]: unknown };
 
-function increment<T extends CountedRecord>(list: T[], predicate: (item: T) => boolean, create: () => Omit<T, 'count'>): void {
+function increment<T extends CountedRecord>(
+  list: T[],
+  predicate: (item: T) => boolean,
+  create: () => Omit<T, 'count'>,
+): void {
   const existing = list.find(predicate);
   if (existing) {
     existing.count += 1;
@@ -99,15 +302,27 @@ function increment<T extends CountedRecord>(list: T[], predicate: (item: T) => b
 }
 
 function reportTag(report: SanitizeReport, tag: string): void {
-  increment(report.removedTags, (item) => item.tag === tag, () => ({ tag }));
+  increment(
+    report.removedTags,
+    (item) => item.tag === tag,
+    () => ({ tag }),
+  );
 }
 
 function reportAttr(report: SanitizeReport, tag: string, attr: string): void {
-  increment(report.removedAttributes, (item) => item.tag === tag && item.attr === attr, () => ({ tag, attr }));
+  increment(
+    report.removedAttributes,
+    (item) => item.tag === tag && item.attr === attr,
+    () => ({ tag, attr }),
+  );
 }
 
 function reportScheme(report: SanitizeReport, scheme: string): void {
-  increment(report.removedSchemes, (item) => item.scheme === scheme, () => ({ scheme }));
+  increment(
+    report.removedSchemes,
+    (item) => item.scheme === scheme,
+    () => ({ scheme }),
+  );
 }
 
 function normalizeName(name: unknown): string {
@@ -116,9 +331,7 @@ function normalizeName(name: unknown): string {
 
 function matchesPattern(attr: string, pattern: string): boolean {
   const normalizedPattern = normalizeName(pattern);
-  return normalizedPattern.endsWith('*')
-    ? attr.startsWith(normalizedPattern.slice(0, -1))
-    : attr === normalizedPattern;
+  return normalizedPattern.endsWith('*') ? attr.startsWith(normalizedPattern.slice(0, -1)) : attr === normalizedPattern;
 }
 
 function getAllowedTags(options: SanitizeOptions = {}): Set<string> {
@@ -293,32 +506,47 @@ function collectDomPurifyRemoved(purifier: any, report: SanitizeReport): void {
 }
 
 export function createSanitizer(runtimeWindow: any, createDOMPurify: any) {
-  return function sanitizeHtml(rawHtml: string, options: SanitizeOptions = {}): { html: string; report: SanitizeReport } {
-    const purifier = createDOMPurify(runtimeWindow);
+  // Sanitization is synchronous, so one purifier can be reused for the lifetime
+  // of its runtime Window. Browser code caches this factory; Node code creates it
+  // inside a short-lived jsdom Window. Hooks remain call-specific.
+  const purifier = createDOMPurify(runtimeWindow);
+
+  return function sanitizeHtml(
+    rawHtml: string,
+    options: SanitizeOptions = {},
+  ): { html: string; report: SanitizeReport } {
     const report = emptyReport();
     const allowedTags = [...getAllowedTags(options)];
 
+    purifier.removeAllHooks();
     applyProjectHooks(purifier, report, options);
 
-    const html = purifier.sanitize(rawHtml, {
-      WHOLE_DOCUMENT: true,
-      // ALLOWED_TAGS/ALLOWED_ATTR are authoritative (they replace DOMPurify's
-      // defaults). Per-tag attribute tightening happens in the afterSanitizeAttributes
-      // hook; DISALLOWED_TAGS is the hard deny-list.
-      ALLOWED_TAGS: allowedTags,
-      ALLOWED_ATTR: getAllowedAttrs(options),
-      FORBID_TAGS: DISALLOWED_TAGS,
-      KEEP_CONTENT: true,
-      ALLOW_DATA_ATTR: true,
-      ALLOW_ARIA_ATTR: true,
-    });
+    try {
+      const html = purifier.sanitize(rawHtml, {
+        WHOLE_DOCUMENT: true,
+        // ALLOWED_TAGS/ALLOWED_ATTR are authoritative (they replace DOMPurify's
+        // defaults). Per-tag attribute tightening happens in the afterSanitizeAttributes
+        // hook; DISALLOWED_TAGS is the hard deny-list.
+        ALLOWED_TAGS: allowedTags,
+        ALLOWED_ATTR: getAllowedAttrs(options),
+        FORBID_TAGS: DISALLOWED_TAGS,
+        KEEP_CONTENT: true,
+        ALLOW_DATA_ATTR: true,
+        ALLOW_ARIA_ATTR: true,
+      });
 
-    collectDomPurifyRemoved(purifier, report);
+      collectDomPurifyRemoved(purifier, report);
 
-    const parser = new runtimeWindow.DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    report.strippedAll = !doc.body.textContent?.trim() && !doc.body.querySelector('script,style,img,svg,canvas,video,audio');
+      const parser = new runtimeWindow.DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const hasBodyContent = Boolean(doc.body.textContent?.trim() || doc.body.querySelector('*'));
+      const hasHeadRuntimeContent = Boolean(doc.head.querySelector('script,style,link'));
+      report.strippedAll = !hasBodyContent && !hasHeadRuntimeContent;
 
-    return { html, report };
+      return { html, report };
+    } finally {
+      purifier.removeAllHooks();
+      purifier.removed = [];
+    }
   };
 }

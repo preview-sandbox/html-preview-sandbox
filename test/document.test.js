@@ -12,6 +12,7 @@ test('createHtmlDocument returns final HTML with CSP and bridge', async () => {
   assert.match(result.html, /Content-Security-Policy/);
   assert.match(result.html, /html-preview-sandbox:openExternal/);
   assert.equal(result.encoding, 'utf-8');
+  assert.equal(result.size, new TextEncoder().encode('<h1>Hello</h1>').byteLength);
 });
 
 test('createHtmlDocument injects a head and CSP when the input has no head', async () => {
@@ -26,6 +27,19 @@ test('empty input sanitizes to an empty document flagged strippedAll', () => {
   // that there was no renderable content.
   const result = sanitizeHtml(fixture('edge/empty.html'));
   assert.equal(result.report.strippedAll, true);
+});
+
+test('createHtmlDocument returns a safe blank document for empty input', async () => {
+  const result = await createHtmlDocument(fixture('edge/empty.html'));
+  assert.equal(result.sanitizeReport.strippedAll, true);
+  assert.match(result.html, /Content-Security-Policy/);
+  assert.match(result.html, /html-preview-sandbox:openExternal/);
+});
+
+test('preserved elements count as content even when they have no text', () => {
+  for (const html of ['<input type="text">', '<canvas></canvas>', '<div style="height: 1px"></div>']) {
+    assert.equal(sanitizeHtml(html).report.strippedAll, false);
+  }
 });
 
 test('createHtmlDocument tolerates malformed nesting without throwing', async () => {

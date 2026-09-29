@@ -8,7 +8,7 @@ and shippable at all times.
 
 | Branch | Purpose | Rules |
 |--------|---------|-------|
-| `main` | The single long-lived branch. Always releasable, always green. | Protected: changes land via PR; CI must pass; at least one review when more than one maintainer exists. Never commit directly to `main` for non-trivial work. |
+| `main` | The single long-lived branch. Always releasable, always green. | Target policy: changes land via PR; CI must pass; at least one review when more than one maintainer exists. Configure the repository ruleset described below before relying on this guarantee. |
 | `feat/<topic>` | New features | Branch from `main`, open a PR back into `main`. |
 | `fix/<topic>` | Bug fixes | Same as above. |
 | `docs/<topic>` | Documentation-only changes | Same as above. |
@@ -21,12 +21,15 @@ not on public branches, until an advisory is ready.
 
 1. Branch from up-to-date `main`.
 2. Make the change; keep it focused (unrelated refactors go in separate PRs).
-3. Run the local gate: `npm run check && npm run test:browser`.
+3. Run the local gate: `npm run check && npm run test:browser`. `check` includes
+   a consumer smoke test against the actual npm tarball, not only source-tree imports.
 4. Open a PR. The template checklist must pass, including:
    - independent-implementation boundary respected;
    - security-affecting changes carry regression tests and fixtures;
    - docs updated and consistent with actual behavior.
-5. CI runs type check, Node tests, browser tests, CodeQL, and `pack:dry`.
+5. CI runs formatting, lint, type check, Node tests, browser tests, build,
+   `pack:dry`, and a consumer smoke test against the packed Node, browser, and
+   React exports.
 6. Squash-merge into `main` once green and reviewed.
 
 ## Versioning
@@ -73,10 +76,17 @@ Then set up the repository:
 git remote add origin git@github.com:preview-sandbox/html-preview-sandbox.git
 ```
 
-- [ ] `NPM_TOKEN` (npm automation token) stored as a repository secret; the account must own or maintain the `html-preview-sandbox` npm package.
+- [ ] Migrate npm publishing from the current `NPM_TOKEN` secret to npm Trusted
+      Publishing (OIDC). Configure npm with org `preview-sandbox`, repository
+      `html-preview-sandbox`, and workflow filename `release.yml`; update the
+      release runner to Node 24/npm 11.5.1+ before removing the token.
 - [ ] GitHub Security Advisories enabled (private vulnerability reporting).
 - [ ] `main` branch protection: require PRs, require CI to pass, and require review once there is more than one maintainer.
-- [ ] CI (`ci.yml`), CodeQL (`codeql.yml`), and the release workflow (`release.yml`) present on the default branch.
+- [ ] Immutable Releases enabled for future GitHub Releases.
+- [x] CI (`ci.yml`) and the release workflow (`release.yml`) present on the default branch.
+
+The project does not currently run CodeQL. Do not list code scanning as a
+required check unless it has been enabled and verified for the repository.
 
 ## Security Fixes
 

@@ -15,9 +15,7 @@ test('renders an uploaded HTML file and reports encoding + sanitizer removals', 
   });
 
   // The file is decoded and rendered in the sandboxed iframe.
-  await expect(
-    page.frameLocator('iframe[title="HTML preview sandbox"]').getByText('Uploaded report'),
-  ).toBeVisible();
+  await expect(page.frameLocator('iframe[title="HTML preview sandbox"]').getByText('Uploaded report')).toBeVisible();
 
   await expect(page.locator('#encoding')).toHaveText('utf-8');
   // The onerror handler must have been stripped and reported.

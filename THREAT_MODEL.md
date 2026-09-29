@@ -15,6 +15,7 @@
 - Limit data exfiltration through CSP presets.
 - Prevent external links and popups from silently taking over the preview iframe.
 - Surface sanitizer changes and CSP violations to the host app.
+- Reject oversized input before DOM parsing in the complete preview/document pipeline.
 
 ## Non Goals
 
@@ -23,6 +24,19 @@
 - It does not protect against browser or runtime sandbox vulnerabilities.
 - It does not make dangerous custom policies safe.
 - It does not fully intercept `window.location` navigation in pure Web hosts.
+
+## Host-Side Resource Exhaustion
+
+The complete input pipeline (`normalizeInput`, `createHtmlDocument`, and
+`createPreview().render()`) rejects inputs larger than 10 MiB by default before
+DOM parsing. This is a coarse safety boundary rather than a memory guarantee:
+node-dense HTML can consume far more memory than its source byte length suggests.
+
+The low-level `sanitizeHtml(rawHtml)` API accepts an already-decoded string and
+does not pass through `normalizeInput`, so it does not enforce `maxBytes`. Direct
+callers must apply their own byte or character limit before sanitization. Hosts
+that raise the pipeline limit should profile representative and adversarial
+documents in every supported runtime.
 
 ## Residual Risk: Low-Bandwidth Side Channels (strict preset)
 

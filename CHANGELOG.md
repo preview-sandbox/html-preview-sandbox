@@ -7,6 +7,46 @@ phase the public API may change between minor versions.
 
 ## [Unreleased]
 
+### Changed
+
+- Empty or fully stripped input now has an explicit contract: the pipeline
+  returns a safe blank document and reports `sanitizeReport.strippedAll = true`.
+  The legacy `EMPTY_AFTER_SANITIZE` error code remains type-compatible but is not
+  emitted by the current document pipeline.
+- Formatting is now enforced by the local and CI quality gates.
+- Node sanitization now scopes and closes its jsdom Window per call, preventing
+  parsed documents from accumulating across repeated large inputs.
+- The default `maxBytes` limit is reduced from 100 MiB to 10 MiB. Hosts can lower
+  it for public uploads or opt into larger inputs after profiling their content.
+- The Node/default entrypoint now declares Node 20.19+, 22.13+, or 24+ to match
+  jsdom's supported runtime range.
+- DOMPurify is updated to 3.4.16 and the lockfile resolves undici 7.30.0 to
+  incorporate current security fixes.
+- CI now verifies the Node test suite on the minimum supported Node 20 and 22
+  releases plus Node 24.
+
+### Added
+
+- `npm run benchmark` for repeatable input-normalization, sanitization, document
+  assembly, and built-entry size measurements.
+- A bounded-heap Node regression test for repeated jsdom sanitization.
+- Structured input-size metadata: `RenderResult.size`, plus `actualBytes` and
+  `maxBytes` on `OVERSIZED` errors.
+- A packed-tarball consumer smoke test for the Node, browser, and React exports,
+  included in local and release quality gates.
+- Playground input-size visibility, copyable JSON reports, and an
+  original/sanitized comparison with removed tokens highlighted.
+- A v0.2-to-v0.3 migration guide.
+
+### Fixed
+
+- Concurrent preview renders now use latest-call-wins semantics, preventing a
+  slower earlier input or stale policy result from replacing the newest iframe.
+- The React wrapper now follows forwarded-ref identity changes without recreating
+  the preview and routes runtime warnings through the latest `logger` prop.
+- Playground inspector values are rendered as text nodes, preventing untrusted
+  report fields or user-entered policy values from becoming host-page markup.
+
 ## [0.2.0] - 2026-07-20
 
 ### Added

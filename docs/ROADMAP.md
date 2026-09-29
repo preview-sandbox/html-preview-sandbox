@@ -1,6 +1,8 @@
 # Roadmap
 
-`v0.1.0` is published to npm. This document tracks what's landed and what's still ahead.
+`v0.2.0` is published to npm. It adds the React entrypoint and SSR-safe browser
+imports on top of the `v0.1.0` core. This document tracks what's landed and
+what's still ahead.
 
 ## Current State
 
@@ -9,6 +11,7 @@ Implemented:
 - single-package TypeScript source;
 - generated ESM Node/default build;
 - generated ESM browser build;
+- generated ESM React wrapper with an optional React peer dependency;
 - generated TypeScript declarations;
 - DOMPurify-backed sanitizer in browser and Node;
 - CSP presets;
@@ -16,18 +19,16 @@ Implemented:
 - injected bridge for link, `window.open`, and CSP violation events;
 - external protocol and custom URL policy;
 - high-risk sandbox token filtering;
-- local Playground inspection workbench;
-- Node tests, Playwright tests, CI, audit script, and pack dry-run;
-- Biome linting (gated in CI) and formatter config.
+- local and hosted Playground inspection workbench;
+- Node tests and Playwright coverage on Chromium, Firefox, and WebKit;
+- CI, audit script, pack dry-run, and a machine-local performance benchmark;
+- Biome linting and formatting, both gated in CI.
 
 ## Housekeeping
 
-- **One-time Biome format pass.** The formatter is configured (`biome.json`) and
-  available via `npm run format`, but existing files have not been reformatted, to
-  keep substantive diffs clean. Apply `biome format --write` in a dedicated
-  `chore: apply Biome formatting` commit (no logic changes). Only after that pass,
-  (re)add a `format:check` script (`biome format .`) and gate it in CI — it is
-  intentionally omitted now so no shipped script fails against the un-formatted tree.
+- **Biome formatting** — Done. The one-time format pass is complete;
+  `npm run format:check` is part of the local `check` command and both CI and
+  release workflows.
 
 ## Priority 0
 
@@ -49,7 +50,8 @@ fixture coverage, and documents its browser baseline.
    and malformed HTML edge cases.
 
 3. **Document browser compatibility** — Done. See [BROWSER_SUPPORT.md](BROWSER_SUPPORT.md):
-   baseline (Chrome/Edge 90+, Firefox 90+, Safari 14+, Electron 12+, Node 18+) with the
+   baseline (Chrome/Edge 90+, Firefox 90+, Safari 14+, Electron 12+, and
+   jsdom's Node range: 20.19+, 22.13+, or 24+) with the
    binding constraint (`Blob.arrayBuffer`) and the full list of platform features used.
 
 ## Priority 1
@@ -77,8 +79,10 @@ These improve adoption and maintainability.
 2. **Improve CI signal**
 
    Done: Dependabot (`.github/dependabot.yml`); the main CI workflow runs
-   lint, type check, Node tests, the Playwright suite on all three bundled
-   engines (Chromium/Firefox/WebKit), a build, and a `pack:dry` job.
+   lint, type check, Node tests on Node 20.19, 22.13, and 24, the Playwright
+   suite on all three bundled engines (Chromium/Firefox/WebKit), a build,
+   `pack:dry`, and a consumer smoke test against the actual packed Node, browser,
+   and React exports.
    (A CodeQL workflow existed briefly but was removed — code scanning
    isn't enabled for this repo.)
 
@@ -103,13 +107,14 @@ These are useful but not release blockers.
 
    - drag-and-drop an HTML file into the editor;
    - "sanitized HTML" view — toggle to inspect the exact document the pipeline produced;
+   - original/sanitized comparison with removed tokens highlighted;
+   - input size versus the 10 MiB limit;
+   - copyable JSON inspection reports;
    - shareable URL — the input + preset are encoded into the location hash and restored on load.
 
    Still potential:
 
-   - copyable reports;
    - saved sample presets;
-   - visual before/after diff for removed tags and attributes.
 
 2. **Policy presets**
 
@@ -122,12 +127,27 @@ These are useful but not release blockers.
 
 3. **Performance and size profiling**
 
-   Add benchmarks for:
+   Done: `npm run benchmark` builds the package and reports repeatable,
+   machine-local measurements for:
 
    - large HTML input normalization;
    - sanitizer runtime;
-   - iframe render time;
-   - bundle size and dependency impact.
+   - complete document assembly;
+   - raw and gzip sizes of the Node, browser, and React entries.
+
+   Still potential: add a browser-only iframe render benchmark and begin tracking
+   release-to-release baselines after enough data exists. CI does not enforce
+   timing thresholds because shared-runner performance is noisy.
+
+   Resolved from the first baseline: the untrusted-input default was reduced from
+   100 MiB to 10 MiB after a node-dense 1 MiB fixture demonstrated that DOM memory
+   cost can be hundreds of times larger than source size. Public-upload hosts can
+   lower the limit to 1–2 MiB; larger limits remain an explicit host decision.
+
+   The 10 MiB limit applies to `normalizeInput` and the complete preview/document
+   pipeline. Direct `sanitizeHtml(rawHtml)` callers own their input-size limit;
+   this boundary is documented in the README, integration guide, API types, and
+   threat model.
 
 4. **`jsdom` dependency footprint**
 
@@ -142,26 +162,24 @@ These are useful but not release blockers.
    clear error when absent) changes install semantics and touches the security-critical
    sanitizer, so it should go through the normal review loop rather than a rushed change.
 
-5. **`EMPTY_AFTER_SANITIZE` behavior needs a proper definition (do not rush)**
+   Done: Node sanitization no longer keeps one persistent jsdom Window. Each
+   synchronous call owns and closes its Window, allowing DOMPurify's parsed
+   documents to be reclaimed between event-loop turns during repeated large-input
+   workloads. A bounded-heap child-process regression test reproduces the old OOM
+   behavior and protects the lifecycle fix.
 
-   DOMPurify's `WHOLE_DOCUMENT` mode wraps any input into an `html/head/body` shell,
-   so `sanitized.html.trim()` in `document.ts` is never blank and the
-   `EMPTY_AFTER_SANITIZE` error never fires. Content that sanitizes to nothing renders
-   as a blank preview instead.
+5. **Empty output behavior**
 
-   The naive fix — `if (sanitized.report.strippedAll) throw ...` — is **wrong**, because
-   `strippedAll` currently keys off text content and a small tag set, so it would
-   misfire on content that is visually/interactively meaningful but text-free
-   (e.g. only `<canvas>`, `<svg>`, `<img>`, or `<input>`). Before changing behavior,
-   the "empty" concept must be split and each case decided explicitly:
+   Resolved for the current API: empty or fully stripped input returns a safe blank
+   document and reports `sanitizeReport.strippedAll = true`; it does not throw.
+   `strippedAll` is now literal: it is false when body text/elements or head runtime
+   resources (`script`, `style`, or `link`) remain, so text-free controls, canvas,
+   SVG, media, and styled elements are not misclassified.
 
-   - empty input;
-   - sanitized to no *visible* content;
-   - sanitized to no *interactive* content;
-   - only form/canvas/svg/media remain (no text).
-
-   Then decide per case whether to throw `EMPTY_AFTER_SANITIZE` or simply signal the
-   host via `sanitizeReport.strippedAll`. This is a dedicated design PR, not an inline fix.
+   The legacy `EMPTY_AFTER_SANITIZE` error code remains in the type surface for
+   compatibility but is not emitted by the current document pipeline. A future
+   major API may replace `strippedAll` with richer content-state metadata if hosts
+   need to distinguish empty input from content removed by policy.
 
 ## Open Questions
 

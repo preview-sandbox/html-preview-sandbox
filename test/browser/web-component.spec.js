@@ -18,12 +18,9 @@ test('<safe-html-preview> renders a sandboxed iframe from its source property', 
 test('<safe-html-preview> forwards external links as openexternal events', async ({ page }) => {
   await page.goto('/examples/web-component/');
 
-  await page
-    .frameLocator('safe-html-preview iframe[title="HTML preview sandbox"]')
-    .getByText('External link')
-    .click();
+  await page.frameLocator('safe-html-preview iframe[title="HTML preview sandbox"]').getByText('External link').click();
 
-  await expect.poll(() => page.evaluate(() => window.externalEvents)).toEqual([
-    { url: 'https://example.com/', source: 'link' },
-  ]);
+  await expect
+    .poll(() => page.evaluate(() => window.externalEvents))
+    .toEqual([{ url: 'https://example.com/', source: 'link' }]);
 });

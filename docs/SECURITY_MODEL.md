@@ -4,20 +4,25 @@
 
 ## Layers
 
-1. **Sanitization**
+1. **Input boundary**
+   The complete preview/document pipeline rejects inputs larger than 10 MiB by
+   default before DOM parsing. Direct `sanitizeHtml(rawHtml)` callers must apply
+   their own limit because that low-level helper receives an already-decoded string.
+
+2. **Sanitization**
    DOMPurify-backed sanitization removes blocked tags, attributes, protocols, meta refresh, and user-provided CSP.
    The Node entrypoint runs DOMPurify with jsdom; the browser entrypoint runs DOMPurify against the real browser `window`.
 
-2. **CSP**
+3. **CSP**
    A generated meta CSP limits network access, object embedding, form submission, and resource loading.
 
-3. **Sandboxed iframe**
+4. **Sandboxed iframe**
    The preview iframe uses `sandbox` without `allow-same-origin`, creating an opaque origin.
 
-4. **Bridge**
+5. **Bridge**
    A small injected script forwards link clicks, `window.open`, and CSP violation reports to the host.
 
-5. **Host adapter**
+6. **Host adapter**
    Hosts may add stronger capabilities such as Electron navigation interception.
 
 ## Default Sandbox
@@ -62,6 +67,8 @@ Hosts can narrow this list with `externalProtocols`. They can also provide `allo
 - `connect-src` is `none` in `strict` and `offline`, blocking the primary data-exfiltration channel despite script execution. `strict` additionally keeps `img-src`/`media-src` at `blob: data:` (no wildcard host) and `form-action 'none'` so there is no attacker-readable exfiltration sink.
 - `allowExternalUrl` is fail-closed when provided: thrown errors and non-`true` results block the URL.
 - Pure Web hosts cannot fully stop `window.location` navigation; stronger host adapters are required for that layer.
+- `maxBytes` is a coarse pre-parse boundary, not a memory guarantee. DOM cost
+  depends on node density, and direct `sanitizeHtml` calls bypass this boundary.
 
 ## Known Trade-offs and Hardening Notes
 

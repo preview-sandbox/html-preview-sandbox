@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { decodeHtmlBytes, normalizeInput } from '../dist/index.js';
+import { DEFAULT_MAX_BYTES, decodeHtmlBytes, normalizeInput } from '../dist/index.js';
 
 function fixtureBytes(path) {
   return new Uint8Array(readFileSync(new URL(`../fixtures/${path}`, import.meta.url)));
@@ -21,8 +21,22 @@ test('normalizeInput accepts strings', async () => {
   assert.equal(result.encoding, 'utf-8');
 });
 
+test('default input limit stays conservative for untrusted HTML', () => {
+  assert.equal(DEFAULT_MAX_BYTES, 10 * 1024 * 1024);
+});
+
 test('normalizeInput rejects oversized strings', async () => {
-  await assert.rejects(() => normalizeInput('abcdef', { maxBytes: 3 }), /exceeds/);
+  await assert.rejects(
+    () => normalizeInput('abcdef', { maxBytes: 3 }),
+    (error) => {
+      assert.equal(error.code, 'OVERSIZED');
+      assert.equal(error.actualBytes, 6);
+      assert.equal(error.maxBytes, 3);
+      assert.match(error.message, /6 bytes/);
+      assert.match(error.message, /3 bytes/);
+      return true;
+    },
+  );
 });
 
 test('normalizeInput rejects an oversized Blob without reading it into memory', async () => {
@@ -36,7 +50,15 @@ test('normalizeInput rejects an oversized Blob without reading it into memory', 
       return Blob.prototype.arrayBuffer.call(this);
     },
   });
-  await assert.rejects(() => normalizeInput(blob, { maxBytes: 3 }), /exceeds/);
+  await assert.rejects(
+    () => normalizeInput(blob, { maxBytes: 3 }),
+    (error) => {
+      assert.equal(error.code, 'OVERSIZED');
+      assert.equal(error.actualBytes, 6);
+      assert.equal(error.maxBytes, 3);
+      return true;
+    },
+  );
   assert.equal(read, false, 'arrayBuffer() must not be called for an oversized Blob');
 });
 

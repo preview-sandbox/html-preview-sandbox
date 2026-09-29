@@ -1,7 +1,14 @@
 import { BRIDGE_CSP_VIOLATION, BRIDGE_OPEN_EXTERNAL } from './bridge.js';
 import { DEFAULT_SANDBOX_TOKENS, getSandboxAttribute, isAllowedExternalUrl } from './policy.js';
 import { ERROR_CODES, PreviewError } from './errors.js';
-import type { OpenExternalSource, PreviewErrorShape, PreviewHandle, PreviewInput, PreviewOptions, RenderResult } from './types.js';
+import type {
+  OpenExternalSource,
+  PreviewErrorShape,
+  PreviewHandle,
+  PreviewInput,
+  PreviewOptions,
+  RenderResult,
+} from './types.js';
 
 function toMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -26,6 +33,7 @@ export function createPreviewFactory(createHtmlDocument: CreateHtmlDocument) {
     let iframe: HTMLIFrameElement | null = null;
     let destroyed = false;
     let lastHtml = '';
+    let renderGeneration = 0;
 
     function removeIframe(): void {
       if (iframe?.parentNode) iframe.parentNode.removeChild(iframe);
@@ -35,9 +43,12 @@ export function createPreviewFactory(createHtmlDocument: CreateHtmlDocument) {
     function ensureIframe(): HTMLIFrameElement {
       removeIframe();
       iframe = document.createElement('iframe');
-      iframe.setAttribute('sandbox', getSandboxAttribute(currentOptions.sandboxTokens ?? DEFAULT_SANDBOX_TOKENS, {
-        allowUnsafeTokens: currentOptions.allowUnsafeSandboxTokens,
-      }));
+      iframe.setAttribute(
+        'sandbox',
+        getSandboxAttribute(currentOptions.sandboxTokens ?? DEFAULT_SANDBOX_TOKENS, {
+          allowUnsafeTokens: currentOptions.allowUnsafeSandboxTokens,
+        }),
+      );
       iframe.setAttribute('referrerpolicy', 'no-referrer');
       iframe.setAttribute('title', 'HTML preview sandbox');
       iframe.style.width = '100%';
@@ -99,8 +110,10 @@ export function createPreviewFactory(createHtmlDocument: CreateHtmlDocument) {
     return {
       async render(input) {
         if (destroyed) throw new Error('Preview has been destroyed');
+        const generation = ++renderGeneration;
         try {
           const result = await createHtmlDocument(input, currentOptions);
+          if (destroyed || generation !== renderGeneration) return result;
           currentOptions.onSanitize?.(result.sanitizeReport);
           lastHtml = result.html;
           const target = ensureIframe();
@@ -127,6 +140,7 @@ export function createPreviewFactory(createHtmlDocument: CreateHtmlDocument) {
       },
       destroy() {
         destroyed = true;
+        renderGeneration += 1;
         window.removeEventListener('message', handleMessage);
         removeIframe();
         lastHtml = '';

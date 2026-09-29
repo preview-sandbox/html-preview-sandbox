@@ -46,7 +46,11 @@ function App() {
           <button id="btn-swap" type="button" onClick={() => setSource(SECOND)}>
             Swap source
           </button>
-          <button id="btn-ref-render" type="button" onClick={() => handleRef.current?.render('<h1>Rendered via ref</h1>')}>
+          <button
+            id="btn-ref-render"
+            type="button"
+            onClick={() => handleRef.current?.render('<h1>Rendered via ref</h1>')}
+          >
             Render via ref
           </button>
           <button id="btn-oversize" type="button" onClick={() => setSource(OVERSIZED_BLOB())}>

@@ -11,13 +11,19 @@ test('sanitizeHtml removes meta refresh', () => {
   const result = sanitizeHtml(fixture('malicious/meta-refresh.html'));
   assert.doesNotMatch(result.html, /http-equiv="refresh"/i);
   assert.doesNotMatch(result.html, /attacker\.example/i);
-  assert.equal(result.report.removedAttributes.some((item) => item.tag === 'meta'), true);
+  assert.equal(
+    result.report.removedAttributes.some((item) => item.tag === 'meta'),
+    true,
+  );
 });
 
 test('sanitizeHtml removes dangerous URL schemes in fallback mode', () => {
   const result = sanitizeHtml(fixture('malicious/javascript-url.html'));
   assert.doesNotMatch(result.html, /javascript:/i);
-  assert.equal(result.report.removedSchemes.some((item) => item.scheme === 'javascript:'), true);
+  assert.equal(
+    result.report.removedSchemes.some((item) => item.scheme === 'javascript:'),
+    true,
+  );
 });
 
 test('sanitizeHtml neutralizes namespace-confusion mXSS vectors', () => {
@@ -55,7 +61,10 @@ test('sanitizeHtml strips automatic event handlers but keeps active click handle
 test('sanitizeHtml strips data:text/html links', () => {
   const result = sanitizeHtml(fixture('malicious/data-html-link.html'));
   assert.doesNotMatch(result.html, /data:text\/html/i);
-  assert.equal(result.report.removedSchemes.some((item) => item.scheme === 'data:'), true);
+  assert.equal(
+    result.report.removedSchemes.some((item) => item.scheme === 'data:'),
+    true,
+  );
 });
 
 test('sanitizeHtml strips form action targets', () => {
@@ -71,7 +80,10 @@ test('sanitizeHtml strips javascript srcset values', () => {
 test('sanitizeHtml strips mixed srcset values with a dangerous candidate', () => {
   const result = sanitizeHtml('<img srcset="https://safe.test/a.png 1x, javascript:alert(1) 2x">');
   assert.doesNotMatch(result.html, /srcset=/i);
-  assert.equal(result.report.removedSchemes.some((item) => item.scheme === 'javascript:'), true);
+  assert.equal(
+    result.report.removedSchemes.some((item) => item.scheme === 'javascript:'),
+    true,
+  );
 });
 
 test('sanitizeHtml strips SVG javascript xlink href', () => {
@@ -130,4 +142,19 @@ test('CSS url() exfiltration: sanitizer preserves styling, strict CSP blocks the
   const csp = buildCsp('strict');
   // img-src (which governs CSS url() image loads) has no wildcard host under strict
   assert.doesNotMatch(csp, /img-src[^;]*https:/);
+});
+
+test('sanitizeHtml does not leak hook reports or options between calls', () => {
+  const first = sanitizeHtml('<iframe src="https://attacker.example"></iframe><custom-box>ok</custom-box>', {
+    extraTags: ['custom-box'],
+  });
+  assert.match(first.html, /custom-box/);
+  assert.ok(first.report.removedTags.some((item) => item.tag === 'iframe'));
+
+  const second = sanitizeHtml('<p>safe</p>');
+  assert.doesNotMatch(second.html, /custom-box|iframe/);
+  assert.equal(
+    second.report.removedTags.some((item) => item.tag === 'iframe'),
+    false,
+  );
 });

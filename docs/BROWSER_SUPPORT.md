@@ -10,9 +10,10 @@
 | Firefox | 90+ |
 | Safari | 14+ |
 | Electron | 12+ (Chromium 89+) |
-| Node (for the jsdom-backed sanitizer path and tests) | 18+ |
+| Node (for the jsdom-backed sanitizer path and tests) | 20.19+, 22.13+, or 24+ (all three release lines are exercised in CI) |
 
-The binding constraint is `Blob.prototype.arrayBuffer()` (Safari 14, 2020). Everything else the library uses is available earlier.
+The browser binding constraint is `Blob.prototype.arrayBuffer()` (Safari 14,
+2020). The Node baseline follows jsdom's supported runtime range.
 
 ## Platform Features Used
 

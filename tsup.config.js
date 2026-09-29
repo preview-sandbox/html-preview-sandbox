@@ -7,7 +7,7 @@ export default defineConfig([
     },
     format: ['esm'],
     platform: 'node',
-    target: 'node18',
+    target: 'node20',
     sourcemap: true,
     clean: true,
     // Declarations are emitted by `tsc` (see the build script), not tsup: tsup's

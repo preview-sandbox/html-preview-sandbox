@@ -21,7 +21,7 @@
 npm install html-preview-sandbox
 ```
 
-- 仅提供 ESM 构建,要求 Node 18+
+- 仅提供 ESM 构建,Node/default 入口支持 Node 20.19+、22.13+ 或 24+
 - 浏览器基线:Chrome/Edge 90+、Firefox 90+、Safari 14+、Electron 12+(详见 [BROWSER_SUPPORT.md](BROWSER_SUPPORT.md))
 
 ## 快速上手
@@ -51,7 +51,7 @@ await preview.render(htmlStringOrFile);
 
 | 方法 | 说明 |
 |------|------|
-| `render(input)` | 渲染输入,返回 `{ html, encoding, sanitizeReport }` |
+| `render(input)` | 渲染输入,返回 `{ html, encoding, sanitizeReport }`;并发调用时只有最后一次可更新 iframe |
 | `updateOptions(patch)` | 局部更新选项;CSP/清洗类变更需重新 `render` 生效 |
 | `notifyNavigationAttempt(url)` | 宿主(如 Electron 主进程)观察到 iframe 自我导航时调用,库会重挂载上次可信内容并走外链决策 |
 | `destroy()` | 销毁 iframe、解绑监听 |
@@ -69,19 +69,26 @@ await createHtmlDocument(input, options);  // 走完整管线但不建 iframe,�
 
 `createHtmlDocument` 适合"要管线不要 iframe"的场景——比如你自己管理 webview,只想拿到处理好的安全 HTML。
 
+`maxBytes` 由 `normalizeInput`、`createHtmlDocument` 和 `createPreview().render()`
+执行。低层 `sanitizeHtml(rawHtml)` 接收已经解码的字符串,不会执行大小检查；直接调用时,
+宿主必须在清洗前限制输入大小。
+
 ## 选项 `PreviewOptions`
 
 | 选项 | 类型 | 默认 | 说明 |
 |------|------|------|------|
 | `csp` | `'strict'\|'balanced'\|'offline'\|CspPolicy` | `'strict'` | CSP 预设或自定义策略 |
 | `sanitize` | `SanitizeOptions` | — | 清洗白名单覆盖(见下) |
-| `maxBytes` | `number` | 100 MB | 超限触发 `onError`(code `OVERSIZED`) |
+| `maxBytes` | `number` | 10 MiB | 完整输入管线的上限,超限触发 `onError`（code `OVERSIZED`）；不适用于直接调用 `sanitizeHtml` |
 | `sandboxTokens` | `string[]` | 见下 | 覆盖 iframe sandbox 属性(逃生舱) |
 | `allowUnsafeSandboxTokens` | `boolean` | `false` | 放行高危 token(`allow-same-origin` 等) |
 | `externalProtocols` | `string[]` | `http/https/mailto/tel` | 外链协议白名单 |
 | `allowExternalUrl` | `(url, ctx) => boolean` | — | 逐 URL 的自定义放行决策 |
 | `injectScrollbarStyle` | `boolean` | `true` | 注入兜底滚动条样式 |
 | `logger` | `Console` 子集 | — | 注入日志器 |
+
+完整管线成功时,`RenderResult.size` 是清洗和注入前的原始输入字节数。超限时,
+`OVERSIZED` 错误同时提供数值字段 `actualBytes` 与 `maxBytes`,宿主无需解析错误文案。
 
 ### 事件回调
 
@@ -91,7 +98,7 @@ await createHtmlDocument(input, options);  // 走完整管线但不建 iframe,�
 | `onCspViolation(report)` | 沙箱内发生 CSP 违例(可用于观测被拦了什么) |
 | `onSanitize(report)` | 清洗完成,报告删了哪些标签/属性/协议 |
 | `onNavigationAttempt(url, ctx)` | 宿主导航拦截触发(需宿主适配层) |
-| `onError(err)` | 出错:`OVERSIZED` / `DECODE_FAILED` / `EMPTY_AFTER_SANITIZE` / `RENDER_FAILED` |
+| `onError(err)` | 出错：`OVERSIZED` / `DECODE_FAILED` / `RENDER_FAILED`。`EMPTY_AFTER_SANITIZE` 仅为兼容保留，当前管线不再抛出 |
 
 ## CSP 三预设(按"数据外传能力"分层)
 
