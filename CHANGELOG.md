@@ -7,6 +7,8 @@ phase the public API may change between minor versions.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-29
+
 ### Added
 
 - A real-process Electron example smoke test, included in CI and the release gate.
@@ -116,7 +118,8 @@ Initial release.
 - Node and Playwright test suites, security regression fixtures, threat model,
   security policy, and contributor documentation.
 
-[Unreleased]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/preview-sandbox/html-preview-sandbox/releases/tag/v0.1.0

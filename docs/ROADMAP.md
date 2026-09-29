@@ -1,8 +1,8 @@
 # Roadmap
 
-`v0.3.0` is published to npm. It adds structured input-size metadata,
-latest-call-wins rendering, Node sanitizer lifecycle hardening, expanded release
-checks, and an upgraded Playground on top of the React-enabled `v0.2.0` release.
+`v0.3.1` is published to npm. It keeps the `v0.3.0` core runtime API unchanged,
+hardens the Electron integration example, adds a real-process Electron release
+test, and documents the verified test matrix and remaining coverage boundaries.
 This document tracks what's landed and what's still ahead.
 
 ## Current State
