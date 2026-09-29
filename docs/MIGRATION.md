@@ -1,7 +1,7 @@
 # Migrating to v0.3
 
-This guide covers the behavior changes currently planned under `Unreleased`.
-Use it when upgrading from `v0.2.x`; the exact version is not published yet.
+This guide covers the behavior changes in `v0.3.0`. Use it when upgrading from
+`v0.2.x`.
 
 ## Runtime Baseline
 

@@ -1,8 +1,9 @@
 # Roadmap
 
-`v0.2.0` is published to npm. It adds the React entrypoint and SSR-safe browser
-imports on top of the `v0.1.0` core. This document tracks what's landed and
-what's still ahead.
+`v0.3.0` is published to npm. It adds structured input-size metadata,
+latest-call-wins rendering, Node sanitizer lifecycle hardening, expanded release
+checks, and an upgraded Playground on top of the React-enabled `v0.2.0` release.
+This document tracks what's landed and what's still ahead.
 
 ## Current State
 

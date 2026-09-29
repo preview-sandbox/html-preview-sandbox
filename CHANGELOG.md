@@ -7,6 +7,8 @@ phase the public API may change between minor versions.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-29
+
 ### Changed
 
 - Empty or fully stripped input now has an explicit contract: the pipeline
@@ -97,6 +99,7 @@ Initial release.
 - Node and Playwright test suites, security regression fixtures, threat model,
   security policy, and contributor documentation.
 
-[Unreleased]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/preview-sandbox/html-preview-sandbox/releases/tag/v0.1.0

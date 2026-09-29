@@ -227,4 +227,4 @@ The Playground is a three-panel workbench with HTML input, sandboxed preview, an
 
 ## Status
 
-`v0.2.0` is published to npm with build provenance, adding the React wrapper on top of the 0.1 core. The API is expected to evolve before 1.0 — see `CHANGELOG.md` for what changed in each release.
+`v0.3.0` is published to npm with build provenance. It adds structured input-size metadata, latest-call-wins rendering, Node sanitizer lifecycle hardening, and an upgraded Playground on top of the React-enabled 0.2 release. The API is expected to evolve before 1.0 — see `CHANGELOG.md` for each release.
