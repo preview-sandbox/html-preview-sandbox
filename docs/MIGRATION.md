@@ -1,14 +1,15 @@
-# Migrating to v0.3
+# Migration Guide
 
-This guide covers the behavior changes in `v0.3.0`. Use it when upgrading from
-`v0.2.x`.
-
-## Upcoming v0.4 Upgrade
+## Upgrading to v0.4
 
 Existing previews keep fill-container sizing without changes. Opt in to
 `sizing: { mode: 'content' }` when a preview should follow document height.
 Review the [integration guide](INTEGRATION.md#content-height-sizing) if you
 use custom sandbox or CSP policies.
+
+## Upgrading from v0.2 to v0.3
+
+The following sections cover the behavior changes in `v0.3.0`.
 
 ## Runtime Baseline
 

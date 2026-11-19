@@ -44,7 +44,7 @@ await preview.render(htmlStringOrFile);
 
 默认 iframe 撑满容器，因此容器 `#preview` 需要有明确的高度。
 
-### 按内容自动调整高度（v0.4，尚未发布）
+### 按内容自动调整高度（v0.4.0 起）
 
 ```js
 const preview = createPreview(container, {
