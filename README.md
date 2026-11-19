@@ -46,7 +46,7 @@ input cannot replace a newer preview.
 exceeds `maxBytes`, the `OVERSIZED` error includes numeric `actualBytes` and
 `maxBytes` fields so hosts can render a useful message without parsing text.
 
-### Fit the iframe to its content (unreleased v0.4)
+### Fit the iframe to its content (since v0.4.0)
 
 ```js
 const preview = createPreview(container, {
@@ -248,7 +248,7 @@ npm run serve
 
 Then visit `http://localhost:4173/playground/`.
 
-The Playground is a three-panel workbench with HTML input, sandboxed preview, and an inspector for sanitizer removals, CSP violations, external requests, and current policy. It also includes sample payloads plus controls for CSP preset, external protocols, and host suffix filtering. You can drag an HTML file onto the editor, inspect original and sanitized HTML side by side with removed tokens highlighted, and copy a machine-readable report. In v0.4 development builds, the preview controls expose fill and content sizing, the inspector shows the iframe dimensions, and Share preserves the input, preset, and sizing together. The input meter shows the current byte size against the configured 10 MiB limit.
+The Playground is a three-panel workbench with HTML input, sandboxed preview, and an inspector for sanitizer removals, CSP violations, external requests, and current policy. It also includes sample payloads plus controls for CSP preset, external protocols, and host suffix filtering. You can drag an HTML file onto the editor, inspect original and sanitized HTML side by side with removed tokens highlighted, and copy a machine-readable report. The preview controls expose fill and content sizing, the inspector shows the iframe dimensions, and Share preserves the input, preset, and sizing together. The input meter shows the current byte size against the configured 10 MiB limit.
 
 ### Hosted Playground
 
@@ -256,8 +256,8 @@ The Playground is a three-panel workbench with HTML input, sandboxed preview, an
 
 ## Status
 
-`v0.3.2` is published to npm with build provenance. It updates security
-dependencies without changing the public API or the supported Node runtime range.
-After publication, a clean npm install verified the Node, browser, and React
-entrypoints. See [release verification](docs/ROADMAP.md#v032-release-closure-security-and-dependency-maintenance)
-and [CHANGELOG.md](CHANGELOG.md).
+`v0.4.0` adds opt-in content-height sizing across the core and React APIs.
+Fill mode remains the default. The supported Node runtime range is unchanged.
+See the [npm package](https://www.npmjs.com/package/html-preview-sandbox),
+[roadmap](docs/ROADMAP.md#v040-responsive-content-sizing), and
+[changelog](CHANGELOG.md#040---2026-11-19).

@@ -7,11 +7,14 @@ phase the public API may change between minor versions.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-19
+
 ### Added
 
 - Opt-in iframe height that follows rendered HTML, with configurable bounds,
-  an applied-size callback, React support, Playground controls, and a runnable
-  example. Fill mode remains the default.
+  applied-size notifications via `onFrameResize`, React support, Playground
+  controls, and a runnable example. Fill mode remains the default, so existing
+  integrations do not need layout changes.
   ([#42](https://github.com/preview-sandbox/html-preview-sandbox/pull/42))
 
 ## [0.3.2] - 2026-11-19
@@ -149,7 +152,8 @@ Initial release.
 - Node and Playwright test suites, security regression fixtures, threat model,
   security policy, and contributor documentation.
 
-[Unreleased]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.2.0...v0.3.0

@@ -41,7 +41,7 @@ The default iframe sandbox omits `allow-same-origin`. Previewed content receives
 
 ## Content Height Sizing
 
-In the upcoming v0.4 release,
+Since v0.4.0,
 `{ sizing: { mode: 'content', minHeight: 150, maxHeight: 800 } }` lets an
 inline preview grow and shrink with its document. Omitting `sizing` or using
 `{ mode: 'fill' }` preserves the fill-container layout.

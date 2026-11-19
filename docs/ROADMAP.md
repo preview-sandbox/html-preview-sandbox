@@ -1,7 +1,8 @@
 # Roadmap
 
-`v0.3.2` is the current npm release. This document tracks what's landed and
-what's still ahead.
+This document tracks what's landed and what's still ahead. See the
+[npm package](https://www.npmjs.com/package/html-preview-sandbox) for the current
+published version.
 
 ## v0.3.1 Release Closure
 
@@ -73,9 +74,9 @@ Release verification:
 - [PR #41](https://github.com/preview-sandbox/html-preview-sandbox/pull/41)
   consolidated the remaining routine dependency updates after the release tag.
 
-## v0.4.0 Unreleased: Responsive Content Sizing
+## v0.4.0: Responsive Content Sizing
 
-The next minor release focuses on opt-in iframe content-height sizing for inline
+`v0.4.0` focuses on opt-in iframe content-height sizing for inline
 previews. The current fill-container behavior remains the default, so existing
 integrations do not change layout after upgrading.
 
@@ -107,8 +108,9 @@ valid preview and that Playground reports reflect the applied settings.
 Verification covered Node, Chromium, Firefox, WebKit, Electron, and the packed
 package entrypoints.
 
-Release status: not tagged or published. The release version, GitHub Release,
-and npm publication are deferred.
+The [post-merge main CI](https://github.com/preview-sandbox/html-preview-sandbox/actions/runs/44480958066)
+passed all three jobs, including 120 browser tests and the Electron and
+packed-consumer checks.
 
 Out of scope for this release: a Vue package, optional `jsdom` installation,
 new CSP presets, width-to-content sizing, and unrelated dependency-major work.
