@@ -118,6 +118,36 @@ The experimental `frame-sizing` / `requestResize()` standard remains a future
 progressive enhancement after it is stable in more than one browser engine and
 can be exercised in CI.
 
+### Release Verification
+
+Published on 2026-11-19 as
+[`html-preview-sandbox@0.4.0`](https://www.npmjs.com/package/html-preview-sandbox/v/0.4.0).
+
+- [Release PR #43](https://github.com/preview-sandbox/html-preview-sandbox/pull/43)
+  updated the version and changelog. Tag `v0.4.0` points to `10bf26f`, which
+  passed [main CI](https://github.com/preview-sandbox/html-preview-sandbox/actions/runs/44488159586).
+- The [tag-triggered release](https://github.com/preview-sandbox/html-preview-sandbox/actions/runs/44490052769)
+  passed 120 Playwright tests across Chromium, Firefox, and WebKit, the
+  Electron example smoke test, and the packed entrypoint checks before
+  publishing with npm provenance. The registry confirmed `latest: 0.4.0`,
+  the release commit, and a 39-file tarball with matching SHA-512 integrity.
+- After the default download URL recovered, `npm install html-preview-sandbox@0.4.0`
+  succeeded in an empty directory using the public registry. The installed
+  package generated an HTML document with CSP on Node, rendered the React
+  wrapper during SSR, and passed a Chromium sizing smoke test: the iframe grew
+  from 160 px to the 260 px cap, shrank to 80 px, emitted resize callbacks, and
+  was removed by `destroy()`.
+
+**Temporary npm download error.** The publish command succeeded at 08:46 UTC.
+The version metadata initially returned `404`, and a clean install returned
+`ETARGET`. By 08:49 UTC, the version was visible and `latest` pointed to it,
+but the default tarball URL still returned a cached `404` (`max-age=300`).
+The same URL with a fresh cache key returned the published tarball, whose
+SHA-512 matched the registry metadata. By 08:52 UTC, the default URL returned
+`200` and the subsequent ordinary install passed. No tag change or republish
+was needed. Check version metadata and the tarball URL separately before
+treating an immediate post-publish install error as a publish failure.
+
 ## Housekeeping
 
 - **Biome formatting** — Done. The one-time format pass is complete;
