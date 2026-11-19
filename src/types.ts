@@ -53,7 +53,18 @@ export interface PreviewErrorShape extends Error {
   maxBytes?: number;
 }
 
+export type PreviewSizingOptions =
+  | { mode?: 'fill'; minHeight?: never; maxHeight?: never }
+  | { mode: 'content'; minHeight?: number; maxHeight?: number };
+
+export interface PreviewFrameSize {
+  width: number;
+  height: number;
+}
+
 export interface PreviewOptions {
+  sizing?: PreviewSizingOptions;
+  onFrameResize?: (size: PreviewFrameSize) => void;
   csp?: CspPreset | CspPolicy;
   sanitize?: SanitizeOptions;
   /** Byte limit for normalizeInput and the preview/document pipeline. Not used by direct sanitizeHtml calls. */

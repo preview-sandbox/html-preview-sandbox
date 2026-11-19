@@ -14,6 +14,7 @@ them from the repository (after `npm install`), not from a copied folder.
 | Example | Entry point it demonstrates | Runtime | Auto-tested |
 |---------|-----------------------------|---------|-------------|
 | [`web/`](web/) | String input | Browser | `test/browser/preview.spec.js` |
+| [`content-sizing/`](content-sizing/) | Automatic height, min/max bounds, applied dimensions | Browser | `test/browser/content-sizing.spec.js` |
 | [`file-upload/`](file-upload/) | `File`/`Blob` input, drag & drop, error states | Browser | `test/browser/file-upload.spec.js` |
 | [`web-component/`](web-component/) | `<safe-html-preview>` custom element | Browser | `test/browser/web-component.spec.js` |
 | [`react/`](react/) | `<SafeHtmlPreview>` React component | Browser (needs `npm run build`) | `test/browser/react.spec.js` |
@@ -29,6 +30,7 @@ npm run build
 npm run serve
 # then open:
 #   http://localhost:4173/examples/web/
+#   http://localhost:4173/examples/content-sizing/
 #   http://localhost:4173/examples/file-upload/
 #   http://localhost:4173/examples/web-component/
 ```

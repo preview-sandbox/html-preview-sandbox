@@ -76,6 +76,11 @@ const clearButton = document.querySelector('#clear-events');
 const previewHost = document.querySelector('#preview');
 const inputMeta = document.querySelector('#input-meta');
 const previewMeta = document.querySelector('#preview-meta');
+const frameSize = document.querySelector('#frame-size');
+const sizingBounds = document.querySelector('#sizing-bounds');
+const sizingError = document.querySelector('#sizing-error');
+const minHeightInput = document.querySelector('#min-height');
+const maxHeightInput = document.querySelector('#max-height');
 const runState = document.querySelector('#run-state');
 const sanitizeLog = document.querySelector('#sanitize-log');
 const cspLog = document.querySelector('#csp-log');
@@ -97,8 +102,11 @@ const changesSummary = document.querySelector('#changes-summary');
 const editorPanel = document.querySelector('.editor-panel');
 
 let lastHtml = '';
+let lastSource = '';
 let lastSanitizedHtml = '';
 let lastResult = null;
+let appliedPolicy = null;
+let renderRequest = 0;
 
 source.value = samples.report;
 
@@ -110,6 +118,9 @@ const preview = createPreview(previewHost, {
   csp: currentPreset(),
   externalProtocols: currentProtocols(),
   allowExternalUrl: allowExternalUrl,
+  onFrameResize({ width, height }) {
+    frameSize.textContent = `${Math.round(width)} × ${Math.round(height)} px`;
+  },
   onSanitize(report) {
     lastSanitizeReport = report;
     renderSanitize(report);
@@ -134,6 +145,28 @@ window.externalEvents = externalEvents;
 
 function currentPreset() {
   return document.querySelector('input[name="preset"]:checked').value;
+}
+
+function validBounds(minHeight, maxHeight) {
+  return (
+    Number.isSafeInteger(minHeight) &&
+    Number.isSafeInteger(maxHeight) &&
+    minHeight >= 0 &&
+    maxHeight > 0 &&
+    minHeight <= maxHeight
+  );
+}
+
+function currentSizing() {
+  const mode = document.querySelector('input[name="sizing"]:checked').value;
+  sizingBounds.hidden = mode === 'fill';
+  const minHeight = minHeightInput.valueAsNumber;
+  const maxHeight = maxHeightInput.valueAsNumber;
+  const valid = mode === 'fill' || validBounds(minHeight, maxHeight);
+  sizingError.hidden = valid;
+  for (const input of [minHeightInput, maxHeightInput]) input.setAttribute('aria-invalid', String(!valid));
+  if (!valid) return null;
+  return mode === 'content' ? { mode, minHeight, maxHeight } : { mode };
 }
 
 function currentProtocols() {
@@ -241,10 +274,11 @@ function renderExternal() {
 }
 
 function renderPolicy() {
+  if (!appliedPolicy) return;
   const sandbox = getSandboxAttribute(DEFAULT_SANDBOX_TOKENS);
   renderEventRows(policyLog, [
-    ['preset', currentPreset()],
-    ['protocols', currentProtocols().join(' ') || 'none'],
+    ['preset', appliedPolicy.preset],
+    ['protocols', appliedPolicy.protocols.join(' ') || 'none'],
     ['host rule', hostRule.value.trim() || 'any host'],
     ['sandbox', sandbox],
   ]);
@@ -258,19 +292,35 @@ function clearEvents() {
 }
 
 async function render() {
+  const sizing = currentSizing();
+  if (!sizing) return;
+  const request = ++renderRequest;
+  const preset = currentPreset();
+  const protocols = currentProtocols();
+  const raw = source.value;
   clearEvents();
   runState.textContent = 'rendering';
   updateInputMeta();
   preview.updateOptions({
-    csp: currentPreset(),
-    externalProtocols: currentProtocols(),
+    csp: preset,
+    externalProtocols: protocols,
     allowExternalUrl,
+    sizing,
   });
   const started = performance.now();
-  const result = await preview.render(source.value);
+  let result;
+  try {
+    result = await preview.render(raw);
+  } catch {
+    return; // onError already updated the inspector.
+  }
+  if (request !== renderRequest) return;
+  previewHost.dataset.sizing = sizing.mode;
   const elapsed = Math.max(1, Math.round(performance.now() - started));
-  const sanitized = sanitizeHtml(source.value);
+  const sanitized = sanitizeHtml(raw);
+  appliedPolicy = { preset, protocols, sizing };
   lastResult = result;
+  lastSource = raw;
   lastHtml = result.html;
   lastSanitizedHtml = sanitized.html;
   previewMeta.textContent = `${result.encoding} / ${formatBytes(result.size)} / ${elapsed}ms`;
@@ -339,21 +389,22 @@ function appendOriginalDiff(html, report) {
 }
 
 function renderChanges() {
-  appendOriginalDiff(source.value, lastSanitizeReport);
+  appendOriginalDiff(lastSource, lastSanitizeReport);
   changesSanitized.textContent = lastSanitizedHtml || 'Render first to inspect sanitizer changes.';
   const removed = lastSanitizeReport ? countRemoved(lastSanitizeReport) : 0;
   changesSummary.textContent = `${removed} removal${removed === 1 ? '' : 's'}`;
 }
 
 async function copyReport() {
-  if (!lastSanitizeReport || !lastResult) return;
+  if (!lastSanitizeReport || !lastResult || !appliedPolicy) return;
   const report = {
     input: {
       size: lastResult.size,
       maxBytes: DEFAULT_MAX_BYTES,
       encoding: lastResult.encoding,
     },
-    preset: currentPreset(),
+    preset: appliedPolicy.preset,
+    sizing: appliedPolicy.sizing,
     sanitizeReport: lastSanitizeReport,
   };
   try {
@@ -367,7 +418,7 @@ async function copyReport() {
   }, 1500);
 }
 
-// --- Shareable URL: encode the input + preset into the location hash ---
+// --- Shareable URL: encode input, preset, and sizing in the location hash ---
 function encodeState(state) {
   const bytes = new TextEncoder().encode(JSON.stringify(state));
   let binary = '';
@@ -382,7 +433,9 @@ function decodeState(encoded) {
 }
 
 async function share() {
-  const encoded = encodeState({ preset: currentPreset(), src: source.value });
+  const sizing = currentSizing();
+  if (!sizing) return;
+  const encoded = encodeState({ preset: currentPreset(), src: source.value, sizing });
   const url = `${location.origin}${location.pathname}#s=${encoded}`;
   history.replaceState(null, '', `#s=${encoded}`);
   try {
@@ -402,8 +455,16 @@ function restoreFromHash() {
   try {
     const state = decodeState(match[1]);
     if (typeof state.src === 'string') source.value = state.src;
-    const presetInput = document.querySelector(`input[name="preset"][value="${state.preset}"]`);
+    const presetInput = [...document.querySelectorAll('input[name="preset"]')].find(
+      (input) => input.value === state.preset,
+    );
     if (presetInput) presetInput.checked = true;
+    const sizing = state.sizing;
+    if (sizing?.mode === 'content' && validBounds(sizing.minHeight, sizing.maxHeight)) {
+      document.querySelector('input[name="sizing"][value="content"]').checked = true;
+      minHeightInput.value = String(sizing.minHeight);
+      maxHeightInput.value = String(sizing.maxHeight);
+    }
     return true;
   } catch {
     return false;
@@ -440,6 +501,14 @@ httpsProtocol.addEventListener('change', render);
 mailProtocol.addEventListener('change', render);
 
 for (const input of document.querySelectorAll('input[name="preset"]')) {
+  input.addEventListener('change', render);
+}
+
+for (const input of document.querySelectorAll('input[name="sizing"]')) {
+  input.addEventListener('change', render);
+}
+for (const input of [minHeightInput, maxHeightInput]) {
+  input.addEventListener('input', currentSizing);
   input.addEventListener('change', render);
 }
 

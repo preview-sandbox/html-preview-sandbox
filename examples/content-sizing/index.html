@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Content sizing example</title>
+    <script type="importmap">
+      { "imports": { "dompurify": "../../node_modules/dompurify/dist/purify.es.mjs" } }
+    </script>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #f7f8f2; color: #14213d; font: 15px system-ui, sans-serif; }
+      main { width: min(100% - 32px, 800px); margin: 32px auto; }
+      h1 { margin: 0 0 16px; font-size: 24px; }
+      form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 16px; margin-bottom: 16px; }
+      label, .metric { display: grid; gap: 4px; }
+      input, select { min-height: 34px; border: 1px solid #aeb8c6; border-radius: 6px; font: inherit; }
+      input { width: 90px; padding: 0 6px; }
+      [hidden] { display: none; }
+      #preview { border: 1px solid #aeb8c6; background: white; }
+      #preview[data-mode="fill"] { height: 360px; }
+      #frame-height { font-weight: 650; color: #106b54; }
+      #bounds-error { color: #9f3628; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Content sizing example</h1>
+      <form id="sizing-controls">
+        <label>Preview height
+          <select id="mode">
+            <option value="content" selected>Fit content</option>
+            <option value="fill">Fill container</option>
+          </select>
+        </label>
+        <label data-bound>Min height (px) <input id="min" type="number" min="0" value="80" required></label>
+        <label data-bound>Max height (px) <input id="max" type="number" min="1" value="480" required></label>
+        <div class="metric">
+          <span id="applied-height">Applied height</span>
+          <output id="frame-height" aria-labelledby="applied-height">Pending</output>
+        </div>
+      </form>
+      <p id="bounds-error" role="status" hidden>Enter whole-pixel bounds with 0 ≤ min ≤ max and max &gt; 0.</p>
+      <div id="preview"></div>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

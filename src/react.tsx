@@ -1,7 +1,8 @@
 import { forwardRef, useEffect, useRef } from 'react';
 import type { CSSProperties, ForwardedRef } from 'react';
 import { createPreview } from './index.browser.js';
-import type { PreviewHandle, PreviewInput, PreviewOptions } from './types.js';
+import { ERROR_CODES, PreviewError } from './errors.js';
+import type { PreviewErrorShape, PreviewHandle, PreviewInput, PreviewOptions } from './types.js';
 
 export type {
   CspPolicy,
@@ -9,9 +10,11 @@ export type {
   CspViolationReport,
   OpenExternalSource,
   PreviewErrorShape,
+  PreviewFrameSize,
   PreviewHandle,
   PreviewInput,
   PreviewOptions,
+  PreviewSizingOptions,
   RenderResult,
   SanitizeOptions,
   SanitizeReport,
@@ -29,6 +32,11 @@ function assignRef(ref: ForwardedRef<PreviewHandle | null>, value: PreviewHandle
   else if (ref) ref.current = value;
 }
 
+function reportError(options: PreviewOptions, error: PreviewErrorShape): void {
+  if (options.onError) options.onError(error);
+  else (options.logger ?? console).error('html-preview-sandbox render failed:', error);
+}
+
 export const SafeHtmlPreview = forwardRef<PreviewHandle | null, SafeHtmlPreviewProps>(function SafeHtmlPreview(
   { source, className, style, ...options },
   ref,
@@ -39,6 +47,10 @@ export const SafeHtmlPreview = forwardRef<PreviewHandle | null, SafeHtmlPreviewP
   // props can change every render without recreating the preview (or iframe).
   const optionsRef = useRef<PreviewOptions>(options);
   optionsRef.current = options;
+  const observeFrame = options.onFrameResize !== undefined;
+  const resizeDelegate = useRef<NonNullable<PreviewOptions['onFrameResize']>>((size) => {
+    optionsRef.current.onFrameResize?.(size);
+  });
   // Serializes render() calls so a slow earlier render can't overwrite a later one.
   const chainRef = useRef<Promise<unknown>>(Promise.resolve());
 
@@ -47,16 +59,15 @@ export const SafeHtmlPreview = forwardRef<PreviewHandle | null, SafeHtmlPreviewP
     if (!container) return undefined;
     const handle = createPreview(container, {
       ...optionsRef.current,
+      sizing: undefined,
+      onFrameResize: optionsRef.current.onFrameResize ? resizeDelegate.current : undefined,
       allowExternalUrl: (url, context) =>
         optionsRef.current.allowExternalUrl ? optionsRef.current.allowExternalUrl(url, context) : true,
       onOpenExternal: (url, context) => optionsRef.current.onOpenExternal?.(url, context),
       onCspViolation: (report) => optionsRef.current.onCspViolation?.(report),
       onSanitize: (report) => optionsRef.current.onSanitize?.(report),
       onNavigationAttempt: (url, context) => optionsRef.current.onNavigationAttempt?.(url, context),
-      onError: (error) => {
-        if (optionsRef.current.onError) optionsRef.current.onError(error);
-        else (optionsRef.current.logger ?? console).error('html-preview-sandbox render failed:', error);
-      },
+      onError: (error) => reportError(optionsRef.current, error),
       logger: {
         info: (...args) => optionsRef.current.logger?.info(...args),
         warn: (...args) => optionsRef.current.logger?.warn(...args),
@@ -75,6 +86,10 @@ export const SafeHtmlPreview = forwardRef<PreviewHandle | null, SafeHtmlPreviewP
     return () => assignRef(ref, null);
   }, [ref]);
 
+  useEffect(() => {
+    handleRef.current?.updateOptions({ onFrameResize: observeFrame ? resizeDelegate.current : undefined });
+  }, [observeFrame]);
+
   // Policy props change the produced document, so they need updateOptions plus
   // a re-render of the current source. Serialized so inline literals in JSX
   // don't retrigger the effect on every render.
@@ -86,6 +101,7 @@ export const SafeHtmlPreview = forwardRef<PreviewHandle | null, SafeHtmlPreviewP
     options.allowUnsafeSandboxTokens,
     options.injectScrollbarStyle,
     options.externalProtocols,
+    options.sizing,
   ]);
 
   // policyKey isn't read inside the effect — it exists purely so inline object
@@ -94,20 +110,43 @@ export const SafeHtmlPreview = forwardRef<PreviewHandle | null, SafeHtmlPreviewP
   useEffect(() => {
     const handle = handleRef.current;
     if (!handle) return;
-    handle.updateOptions({
-      csp: optionsRef.current.csp,
-      sanitize: optionsRef.current.sanitize,
-      maxBytes: optionsRef.current.maxBytes,
-      sandboxTokens: optionsRef.current.sandboxTokens,
-      allowUnsafeSandboxTokens: optionsRef.current.allowUnsafeSandboxTokens,
-      injectScrollbarStyle: optionsRef.current.injectScrollbarStyle,
-      externalProtocols: optionsRef.current.externalProtocols,
-    });
+    const {
+      csp,
+      sanitize,
+      maxBytes,
+      sandboxTokens,
+      allowUnsafeSandboxTokens,
+      injectScrollbarStyle,
+      externalProtocols,
+      sizing,
+    } = optionsRef.current;
+    try {
+      handle.updateOptions({
+        csp,
+        sanitize,
+        maxBytes,
+        sandboxTokens,
+        allowUnsafeSandboxTokens,
+        injectScrollbarStyle,
+        externalProtocols,
+        sizing,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      reportError(optionsRef.current, new PreviewError(ERROR_CODES.RENDER_FAILED, message, error));
+      return;
+    }
     if (source === undefined) return;
+    let active = true;
     chainRef.current = chainRef.current
-      .then(() => handleRef.current?.render(source))
+      .then(() => {
+        if (active && handleRef.current === handle) return handle.render(source);
+      })
       // Rejections are already surfaced through the onError wrapper above.
       .catch(() => {});
+    return () => {
+      active = false;
+    };
   }, [source, policyKey]);
 
   return <div ref={containerRef} className={className} style={style} />;

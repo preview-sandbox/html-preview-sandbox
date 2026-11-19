@@ -29,7 +29,7 @@
           <label><input type="radio" name="preset" value="balanced"><span>balanced</span></label>
           <label><input type="radio" name="preset" value="offline"><span>offline</span></label>
         </div>
-        <button id="share" title="Copy a shareable link to this input + preset">Share</button>
+        <button id="share" title="Copy a shareable link to this preview">Share</button>
         <button id="render" class="primary">Render</button>
       </div>
     </header>
@@ -70,6 +70,17 @@
               <input id="host-rule" type="text" placeholder="host suffix">
             </div>
           </div>
+        </div>
+        <div class="sizing-controls">
+          <div class="segmented sizing-toggle" role="group" aria-label="Preview height">
+            <label><input type="radio" name="sizing" value="fill" checked><span>Fill container</span></label>
+            <label><input type="radio" name="sizing" value="content"><span>Fit content</span></label>
+          </div>
+          <div id="sizing-bounds" hidden>
+            <label>Min height (px) <input id="min-height" type="number" min="0" step="1" value="150" required></label>
+            <label>Max height (px) <input id="max-height" type="number" min="1" step="1" value="10000" required></label>
+          </div>
+          <p id="sizing-error" role="status" hidden>Enter whole-pixel bounds with 0 ≤ min ≤ max and max &gt; 0.</p>
         </div>
         <div class="preview-body">
           <div id="preview"></div>
@@ -115,6 +126,10 @@
           <div class="rail-item">
             <span class="rail-key">sandbox</span>
             <strong>opaque</strong>
+          </div>
+          <div class="rail-item frame-metric">
+            <span class="rail-key" id="frame-size-label">frame size</span>
+            <output id="frame-size" aria-labelledby="frame-size-label">Pending</output>
           </div>
         </div>
 

@@ -78,3 +78,32 @@ test('SafeHtmlPreview routes runtime warnings to the latest logger prop', async 
     fixture.restore();
   }
 });
+
+test('SafeHtmlPreview reports invalid sizing without losing its existing preview', async () => {
+  const fixture = installDom();
+  const root = createRoot(fixture.container);
+  const ref = createRef();
+  const errors = [];
+  const onError = (error) => errors.push(error);
+  const render = (options) =>
+    act(async () => root.render(React.createElement(SafeHtmlPreview, { ref, onError, ...options })));
+
+  try {
+    await render({ source: '<p>First report</p>', sizing: { mode: 'content', minHeight: 200, maxHeight: 100 } });
+    assert.equal(errors.length, 1);
+    assert.equal(errors[0].code, 'RENDER_FAILED');
+    assert.equal(ref.current.iframe, null);
+
+    await render({ source: '<p>Valid report</p>', sizing: { mode: 'content' } });
+    const frame = ref.current.iframe;
+    assert.match(frame.srcdoc, /Valid report/);
+
+    await render({ source: '<p>Do not replace</p>', sizing: { mode: 'content' }, sandboxTokens: [] });
+    assert.equal(errors.length, 2);
+    assert.equal(errors[1].code, 'RENDER_FAILED');
+    assert.equal(ref.current.iframe, frame);
+  } finally {
+    await act(async () => root.unmount());
+    fixture.restore();
+  }
+});

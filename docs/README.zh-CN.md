@@ -42,7 +42,26 @@ const preview = createPreview(document.querySelector('#preview'), {
 await preview.render(htmlStringOrFile);
 ```
 
-容器 `#preview` 需要有确定的尺寸(库会在里面塞一个撑满的 iframe)。
+默认 iframe 撑满容器，因此容器 `#preview` 需要有明确的高度。
+
+### 按内容自动调整高度（v0.4，尚未发布）
+
+```js
+const preview = createPreview(container, {
+  sizing: { mode: 'content', minHeight: 150, maxHeight: 800 },
+  onFrameResize({ width, height }) {
+    console.info(width, height);
+  },
+});
+await preview.render(html);
+```
+
+内容模式默认范围是 150–10,000 CSS 像素，支持显式设最小高度为 0。
+内容超过最大高度时，库不会禁用 iframe 内部滚动，但内容自身的样式可能会禁用。
+React 组件接收相同的两个 props。尺寸策略修改后下次 `render()` 生效，
+回调增删或替换立即生效。依赖视口高度（如 `100vh`）的文档请继续用默认填充模式。
+内容模式不会放宽沙箱或 CSP；自定义策略必须允许库注入的桥接脚本。
+详见[集成指南](INTEGRATION.md#content-height-sizing)。
 
 ## 核心 API
 

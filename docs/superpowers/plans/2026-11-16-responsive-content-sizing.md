@@ -28,6 +28,19 @@
 - Node 20.19+, 22.13+, and 24+ support and the existing browser floors remain unchanged.
 - Fill/content option changes take full effect on the next `render()`; the React wrapper re-renders automatically.
 
+## Implementation Notes
+
+- Only the internally generated bridge script carries the sizing marker, and
+  fill-mode documents retain their original script and scrollbar output.
+- Custom script policy checks are conservative across browser floors: both the
+  effective script element directive and its legacy fallback must allow the
+  injected bridge. The renderer does not infer or replace host CSP.
+- Host navigation remounts keep the last displayed sizing but reapply the
+  current sandbox settings, including any host tightening. Observer callbacks
+  can change independently on the mounted frame.
+- The feature branch does not bump versions or publish. Release-candidate work
+  remains a separate step after implementation review.
+
 ## Review Focus
 
 - A document that grows and later shrinks must reduce iframe height on all three Playwright engines; Task 5 owns this test.

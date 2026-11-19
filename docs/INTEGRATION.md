@@ -39,6 +39,36 @@ The sanitizer is DOMPurify in both runtimes. Browser integrations use the real b
 
 The default iframe sandbox omits `allow-same-origin`. Previewed content receives an opaque origin and cannot read host cookies, storage, or DOM.
 
+## Content Height Sizing
+
+In the upcoming v0.4 release,
+`{ sizing: { mode: 'content', minHeight: 150, maxHeight: 800 } }` lets an
+inline preview grow and shrink with its document. Omitting `sizing` or using
+`{ mode: 'fill' }` preserves the fill-container layout.
+
+- Bounds default to 150 and 10,000 CSS pixels. They must be safe integers with
+  `0 <= minHeight <= maxHeight` and a positive maximum. Heights are rounded up
+  and clamped. The library does not disable iframe scrolling, though author
+  CSS can.
+- `onFrameResize({ width, height })` reports the actual iframe border box in
+  CSS pixels in either mode. Callback additions, changes and removals take
+  effect on the mounted iframe without re-rendering it.
+- Sizing changes made with `updateOptions()` take effect on the next
+  `render()`. React accepts the same options as props and re-renders its
+  current source when the policy changes. Invalid sizing props report through
+  React's `onError` and leave the previous preview intact. Call `destroy()` when a vanilla
+  preview is no longer needed.
+- The bridge requires `allow-scripts` and an inline-script-compatible CSP.
+  The presets work as-is. For cross-browser behavior, a custom policy must
+  allow the inline bridge in both `script-src` and any `script-src-elem`
+  override. The validator cannot see CSP inherited from the host. It never
+  relaxes any policy. `sanitize.allowScripts: false` strips author scripts
+  but does not disable the injected bridge.
+
+Use fill mode for documents built around `100vh`, height media queries,
+fixed positioning, or other viewport-dependent layouts. Detected resize
+oscillation settles on a recent larger height instead of resizing indefinitely.
+
 ## External Links
 
 Links and `window.open()` calls inside the sandbox are forwarded to `onOpenExternal`.

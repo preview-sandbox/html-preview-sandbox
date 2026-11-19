@@ -7,7 +7,14 @@ phase the public API may change between minor versions.
 
 ## [Unreleased]
 
-## [0.3.2] - 2026-11-16
+### Added
+
+- Opt-in iframe height that follows rendered HTML, with configurable bounds,
+  an applied-size callback, React support, Playground controls, and a runnable
+  example. Fill mode remains the default.
+  ([#42](https://github.com/preview-sandbox/html-preview-sandbox/pull/42))
+
+## [0.3.2] - 2026-11-19
 
 ### Security
 

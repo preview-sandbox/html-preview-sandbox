@@ -135,36 +135,39 @@ extends `PreviewOptions`.
 - Content mode also requires the effective CSP to allow the package's injected
   inline bridge. A custom `script-src` that blocks it is rejected synchronously
   instead of silently leaving the iframe at its minimum height. Presets continue
-  to permit the bridge.
+  to permit the bridge. To preserve the oldest supported engines, validate the
+  fallback directive as well as any `script-src-elem` override. Policy inherited
+  from the host is outside this static validation.
 - Sizing changes made with `updateOptions()` apply fully on the next `render()`;
   the React wrapper automatically re-renders its current source when `sizing`
   changes, matching its existing CSP and sanitizer-option behavior.
 
 ## Document Instrumentation
 
-Content mode adds a private `data-html-preview-sandbox-sizing="content"` marker
-to the generated document. The existing bridge checks that marker before
-starting its size-reporting lifecycle. This keeps the public
+Content mode marks the generated bridge script with the private
+`data-html-preview-sandbox-sizing="content"` attribute. The bridge reads it
+from its own script element before starting measurement. This keeps the public
 `injectBridgeScript(html)` signature unchanged. Fill mode does not start sizing
 observers or emit sizing messages.
 
 The child bridge:
 
 1. Starts after `DOMContentLoaded` so `document.body` exists.
-2. Observes body box changes with `ResizeObserver`.
+2. Observes body border-box changes with `ResizeObserver`.
 3. Coalesces mutation, captured resource-load, `document.fonts` loading, and
    resize changes with one `requestAnimationFrame` callback.
 4. Emits the content-size message to the host.
 5. Suppresses duplicate measured heights in the child.
 6. Disconnects observers and listeners when the document unloads.
 
-The shrink-safe fallback measurement is based on the body border-box plus its
-block margins. `documentElement.scrollHeight` is used only while it exceeds
-`documentElement.clientHeight`, which represents real overflow; it is not used
-as the sole height because it retains the previous iframe viewport during
-shrink. A mutation observer schedules remeasurement for absolutely positioned
-or otherwise non-flow changes. Fixed-position and circular viewport-dependent
-layouts remain documented limitations.
+Measurement combines root and body geometry so collapsed document margins are
+included without treating the viewport's minimum scroll extent as content.
+When previously measured overflow fits the viewport exactly, the bridge checks
+positioned descendants and skips collapsed details. A fallback timer allows a
+zero-height frame to remeasure when animation frames are throttled. Repeated
+viewport-driven reversals settle at a recent larger measurement and resume
+measurement after content, resource, or width changes. This is a stability
+guard, not a promise to fit arbitrary fixed-position or viewport-dependent CSS.
 
 The package's injected scrollbar style has separate fill and content variants.
 Fill mode retains the existing `html, body { min-height: 100% }` behavior.

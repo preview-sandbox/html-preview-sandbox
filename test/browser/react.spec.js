@@ -59,3 +59,13 @@ test('an oversized Blob source surfaces OVERSIZED through onError', async ({ pag
   // The previous trusted document stays in place after the failed render.
   await expect(page.frameLocator('#preview-root iframe').locator('h1')).toHaveText('Hello from React');
 });
+
+test('React sizing prop re-renders and onFrameResize reports the clamped height', async ({ page }) => {
+  const frame = page.locator('#preview-root iframe');
+  await expect(frame).toBeVisible();
+  await page.getByLabel('Preview height').selectOption('content');
+  await expect(frame).toHaveCSS('max-height', '180px');
+  await expect(page.locator('#react-frame-size')).toHaveText('180 px');
+  await page.getByLabel('Preview height').selectOption('fill');
+  await expect(frame).toHaveCSS('max-height', 'none');
+});
