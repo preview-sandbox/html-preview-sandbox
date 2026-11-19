@@ -7,13 +7,29 @@ phase the public API may change between minor versions.
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-11-16
+
+### Security
+
+- Raised the minimum DOMPurify version to 3.4.18 to incorporate the current
+  upstream sanitizer security fixes.
+- Updated the lockfile to `source-map-js` 1.2.2 and `undici` 7.30.2, resolving
+  the current npm audit findings without dropping Node 20.19 support.
+
 ### Changed
 
+- Updated the repository's Electron example and smoke-test runtime from 43.0.0
+  to the patched 43.8.10 release without taking an unrelated major upgrade.
+- Internal responsive-sizing design and implementation plans are excluded from
+  the published npm tarball.
 - CI, Pages, and release toolchain jobs now use Node 22.13 to satisfy the
   Electron 43 development requirement, while Node 20.19 remains covered by the
   dedicated core compatibility job.
 - README and roadmap now record the finalized `v0.3.1` registry, provenance,
   public-install, CI, and package-content verification results.
+
+Consumers that commit a package-manager lockfile should refresh it while
+upgrading so the patched transitive dependency versions are selected.
 
 ## [0.3.1] - 2026-09-29
 
@@ -126,7 +142,8 @@ Initial release.
 - Node and Playwright test suites, security regression fixtures, threat model,
   security policy, and contributor documentation.
 
-[Unreleased]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/preview-sandbox/html-preview-sandbox/compare/v0.1.0...v0.2.0

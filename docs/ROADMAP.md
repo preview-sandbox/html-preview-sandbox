@@ -39,6 +39,74 @@ Implemented:
 - CI, audit script, pack dry-run, and a machine-local performance benchmark;
 - Biome linting and formatting, both gated in CI.
 
+## v0.3.2 Release Candidate: Security And Dependency Maintenance
+
+This focused patch is prepared before starting `v0.4.0` and does not contain
+responsive-sizing API work.
+
+Implemented:
+
+- raised the minimum DOMPurify version to 3.4.18;
+- updated the lockfile to `source-map-js` 1.2.2 and `undici` 7.30.2 while
+  retaining the documented Node 20.19+ runtime floor;
+- updated Electron to 43.8.10 for the repository example and smoke test,
+  instead of taking the unrelated Electron 44 major upgrade;
+- kept internal responsive-sizing planning artifacts out of the npm tarball;
+- added release notes that tell existing lockfile users to refresh
+  transitive dependencies.
+
+`jsdom` 30 remains deferred because its Node engine requirement is incompatible
+with the current Node 20.19+ support contract. General tooling updates that are
+not needed for the security gate belong in a separate maintenance change.
+
+Tag creation, npm publication, and Dependabot PR closure remain pending until
+the final `0.3.2` release gate and GitHub CI pass.
+
+Local release-candidate verification (2026-11-16):
+
+- a clean `npm ci` completed with zero audit findings;
+- formatting, strict types, lint, 53 Node tests, and the packed-consumer test
+  passed;
+- all 78 Playwright tests passed across Chromium, Firefox, and WebKit;
+- the Electron 43.8.10 real-process smoke test passed;
+- the dry-run tarball contained the expected 38 files, excluded
+  `docs/superpowers/`, and measured 164.7 kB compressed;
+- the machine-local performance and bundle-size benchmark completed without a
+  regression gate failure.
+
+## v0.4.0 Planned: Responsive Content Sizing
+
+The next minor release focuses on opt-in iframe content-height sizing for inline
+previews. The current fill-container behavior remains the default, so existing
+integrations do not change layout after upgrading.
+
+Planned scope:
+
+- `sizing.mode: 'fill' | 'content'`, with bounded content-mode minimum and
+  maximum heights;
+- a Chromium/Firefox/WebKit-compatible bridge fallback with growth, shrink,
+  validation, clamping, update coalescing, and lifecycle cleanup;
+- content-mode scrollbar styling that does not impose the fill-mode
+  `html, body { min-height: 100% }` rule or prevent shrinking;
+- finite, non-negative child height validation so an explicit `minHeight: 0`
+  can shrink back to an empty document;
+- fail-fast validation when sandbox or CSP settings would block the sizing
+  bridge;
+- `onFrameResize` observability through the vanilla and React APIs;
+- immediate observer reconciliation when `onFrameResize` is added, replaced,
+  or removed with `updateOptions()`;
+- a dedicated content-sizing example plus Playground controls;
+- cross-instance, stale-frame, hostile-message, React, and three-engine browser
+  regression coverage;
+- synchronized integration, compatibility, migration, threat-model, and security
+  documentation.
+
+Out of scope for this release: a Vue package, optional `jsdom` installation,
+new CSP presets, width-to-content sizing, and unrelated dependency-major work.
+The experimental `frame-sizing` / `requestResize()` standard remains a future
+progressive enhancement after it is stable in more than one browser engine and
+can be exercised in CI.
+
 ## Housekeeping
 
 - **Biome formatting** — Done. The one-time format pass is complete;
