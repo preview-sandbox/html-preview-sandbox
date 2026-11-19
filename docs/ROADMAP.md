@@ -73,13 +73,13 @@ Release verification:
 - [PR #41](https://github.com/preview-sandbox/html-preview-sandbox/pull/41)
   consolidated the remaining routine dependency updates after the release tag.
 
-## v0.4.0 In Development: Responsive Content Sizing
+## v0.4.0 Unreleased: Responsive Content Sizing
 
 The next minor release focuses on opt-in iframe content-height sizing for inline
 previews. The current fill-container behavior remains the default, so existing
 integrations do not change layout after upgrading.
 
-Planned scope:
+Implemented in [PR #42](https://github.com/preview-sandbox/html-preview-sandbox/pull/42):
 
 - `sizing.mode: 'fill' | 'content'`, with bounded content-mode minimum and
   maximum heights;
@@ -99,6 +99,16 @@ Planned scope:
   regression coverage;
 - synchronized integration, compatibility, migration, threat-model, and security
   documentation.
+
+The implementation review added regression tests for layout oscillation,
+recovery from zero height, late image loading, and resize cleanup on remount or
+destroy. It also verified that invalid React sizing props preserve the last
+valid preview and that Playground reports reflect the applied settings.
+Verification covered Node, Chromium, Firefox, WebKit, Electron, and the packed
+package entrypoints.
+
+Release status: not tagged or published. The release version, GitHub Release,
+and npm publication are deferred.
 
 Out of scope for this release: a Vue package, optional `jsdom` installation,
 new CSP presets, width-to-content sizing, and unrelated dependency-major work.
