@@ -30,6 +30,9 @@ Injected bridge (runs inside the sandboxed document):
 
 - **`securitypolicyviolation` event** — CSP violation reporting, since `report-uri`/`report-to` are ignored under a `<meta>` CSP.
 - **`CSS.escape`** — safe fragment lookup for in-page anchor scrolling.
+- v0.4 content sizing uses `ResizeObserver`, `MutationObserver`, and
+  `requestAnimationFrame`. The host falls back to the iframe bounding rectangle
+  if `borderBoxSize` is unavailable. No native responsive iframe API is required.
 - Modern syntax (arrow functions, `const`/`let`, template literals, `Set`) — the bridge is injected as ES2020-level source and runs in the target browser.
 
 Sanitizer:

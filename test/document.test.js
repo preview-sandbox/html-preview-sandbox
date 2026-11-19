@@ -15,6 +15,43 @@ test('createHtmlDocument returns final HTML with CSP and bridge', async () => {
   assert.equal(result.size, new TextEncoder().encode('<h1>Hello</h1>').byteLength);
 });
 
+test('content sizing instruments the generated bridge without fill-mode minimum height', async () => {
+  const content = await createHtmlDocument('<h1>Hello</h1>', { sizing: { mode: 'content' } });
+  assert.match(content.html, /Content-Security-Policy[^>]*>\s*<script data-html-preview-sandbox-sizing="content">/);
+  assert.doesNotMatch(content.html, /min-height: 100%/);
+  const fill = await createHtmlDocument('<h1>Hello</h1>', { sizing: { mode: 'fill' } });
+  assert.doesNotMatch(fill.html, /data-html-preview-sandbox-sizing/);
+  assert.match(fill.html, /min-height: 100%/);
+});
+
+test('createHtmlDocument rejects invalid sizing and incompatible bridge configuration', async () => {
+  for (const sizing of [
+    null,
+    { mode: 'unknown' },
+    { minHeight: 10 },
+    { mode: 'fill', maxHeight: 10 },
+    { mode: 'content', minHeight: -1 },
+    { mode: 'content', maxHeight: 0 },
+    { mode: 'content', minHeight: 1.5 },
+    { mode: 'content', maxHeight: Number.POSITIVE_INFINITY },
+    { mode: 'content', maxHeight: Number.MAX_SAFE_INTEGER + 1 },
+    { mode: 'content', minHeight: 20, maxHeight: 10 },
+  ]) {
+    await assert.rejects(createHtmlDocument('<p>Hello</p>', { sizing }), TypeError);
+  }
+  const sizing = { mode: 'content' };
+  await assert.rejects(createHtmlDocument('', { sizing, sandboxTokens: [] }), /allow-scripts/);
+  await assert.rejects(createHtmlDocument('', { sizing, csp: { directives: { 'script-src-elem': "'none'" } } }), /CSP/);
+  await assert.rejects(
+    createHtmlDocument('', { sizing, csp: { directives: { 'script-src': "'unsafe-inline' 'nonce-example'" } } }),
+    /CSP/,
+  );
+  await createHtmlDocument('', {
+    sizing,
+    csp: { directives: { 'script-src-attr': "'none'", 'script-src-elem': "'unsafe-inline'" } },
+  });
+});
+
 test('createHtmlDocument injects a head and CSP when the input has no head', async () => {
   const result = await createHtmlDocument(fixture('edge/no-head.html'));
   // injectCspMeta must still place the CSP meta even without an author <head>.

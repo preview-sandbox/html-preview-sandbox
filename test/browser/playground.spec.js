@@ -30,6 +30,55 @@ test('playground Share encodes input + preset into a restorable URL', async ({ p
   await expect(page.locator('input[name="preset"][value="balanced"]')).toBeChecked();
 });
 
+test('playground shares content sizing and retains the last preview for invalid bounds', async ({ page }) => {
+  await page.goto('/playground/');
+  await expect(page.locator('#run-state')).toHaveText('rendered');
+  const frame = page.locator('#preview iframe');
+  await expect(frame).toHaveCSS('max-height', 'none');
+  await page.locator('#source').fill('<div style="height: 430px">Preview</div>');
+  await page.getByText('Fit content', { exact: true }).click();
+  await page.getByLabel('Max height (px)').fill('220');
+  await page.locator('#render').click();
+  await expect(page.locator('#frame-size')).toHaveText(/× 220 px/);
+
+  await page.getByLabel('Min height (px)').fill('240');
+  await page.locator('#render').click();
+  await expect(page.locator('#sizing-error')).toBeVisible();
+  await expect(frame).toHaveCSS('height', '220px');
+
+  await page.getByLabel('Min height (px)').fill('160');
+  await page.locator('#share').click();
+  await expect(page).toHaveURL(/#s=/);
+  await page.reload();
+  await expect(page.getByLabel('Fit content')).toBeChecked();
+  await expect(page.getByLabel('Min height (px)')).toHaveValue('160');
+  await expect(page.getByLabel('Max height (px)')).toHaveValue('220');
+  await expect(page.locator('#frame-size')).toHaveText(/× 220 px/);
+});
+
+test('playground copies the applied preset while an invalid draft is visible', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        async writeText(text) {
+          window.copiedPolicyReport = JSON.parse(text);
+        },
+      },
+    });
+  });
+  await page.goto('/playground/');
+  await page.locator('input[name="preset"][value="balanced"]').check({ force: true });
+  await page.getByText('Fit content', { exact: true }).click();
+  await expect(page.locator('#policy-log')).toContainText('balanced');
+  await page.getByLabel('Max height (px)').fill('100');
+  await page.locator('input[name="preset"][value="strict"]').check({ force: true });
+  await expect(page.locator('#sizing-error')).toBeVisible();
+  await page.locator('#copy-report').click();
+  await expect.poll(() => page.evaluate(() => window.copiedPolicyReport?.preset)).toBe('balanced');
+  await expect(page.locator('#policy-log')).toContainText('balanced');
+});
+
 test('playground loads a dropped HTML file into the editor and renders it', async ({ page }) => {
   await page.goto('/playground/');
 

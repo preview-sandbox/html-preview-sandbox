@@ -38,6 +38,12 @@ callers must apply their own byte or character limit before sanitization. Hosts
 that raise the pipeline limit should profile representative and adversarial
 documents in every supported runtime.
 
+In v0.4, opt-in content sizing treats the iframe's height as an untrusted
+layout hint. The host accepts only finite non-negative values from the current
+iframe window, then clamps and batches writes. The frame can still influence
+host layout within the configured bounds; this is not a CPU or page-level
+denial-of-service guarantee. Sizing grants no new sandbox or CSP privileges.
+
 ## Residual Risk: Low-Bandwidth Side Channels (strict preset)
 
 The `strict` preset blocks general-purpose, attacker-readable exfiltration channels, but it is not "zero network". Because it permits loading from fixed static CDN and font hosts, some low-bandwidth information leakage remains possible and is **out of scope**:

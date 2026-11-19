@@ -21,6 +21,9 @@
 
 5. **Bridge**
    A small injected script forwards link clicks, `window.open`, and CSP violation reports to the host.
+   v0.4 content sizing adds a height hint. The renderer validates its value
+   and source window before applying a bounded, batched layout update.
+   This does not relax the sandbox or CSP.
 
 6. **Host adapter**
    Hosts may add stronger capabilities such as Electron navigation interception.
@@ -84,8 +87,8 @@ surrounding layers, but are documented so the trade-off is explicit and revisita
   is overridden by the bridge and routed to `onOpenExternal`, so a real escaping popup is
   hard to trigger from content. Kept as defense-in-depth belt so an approved "open in new
   tab" reaches the host decision rather than opening a sandboxed blank page.
-- **Bridge `postMessage` uses `targetOrigin: '*'`** — the payload is a URL or a CSP
-  violation report (not secret), and the host receiver verifies `event.source ===
+- **Bridge `postMessage` uses `targetOrigin: '*'`** — the payload is a URL, a CSP
+  violation report, or a content height, and the host receiver verifies `event.source ===
   iframe.contentWindow` before acting. Acceptable given the sandboxed opaque origin.
 
 ## Why DOMPurify Is Not Enough

@@ -27,6 +27,8 @@ function App() {
   const [source, setSource] = useState(REPORT);
   const [csp, setCsp] = useState('strict');
   const [mounted, setMounted] = useState(true);
+  const [sizingMode, setSizingMode] = useState('fill');
+  const [frameSize, setFrameSize] = useState(null);
   const [entries, setEntries] = useState([]);
   const handleRef = useRef(null);
 
@@ -61,6 +63,14 @@ function App() {
             <option value="balanced">csp: balanced</option>
             <option value="offline">csp: offline</option>
           </select>
+          <select
+            aria-label="Preview height"
+            value={sizingMode}
+            onChange={(event) => setSizingMode(event.target.value)}
+          >
+            <option value="fill">Fill container</option>
+            <option value="content">Fit content</option>
+          </select>
           <button id="btn-unmount" type="button" onClick={() => setMounted((value) => !value)}>
             {mounted ? 'Unmount' : 'Mount'}
           </button>
@@ -69,7 +79,10 @@ function App() {
 
       <main>
         <section className="pane">
-          <div className="pane-head">Sandboxed preview</div>
+          <div className="pane-head">
+            Sandboxed preview{' '}
+            {mounted && frameSize && <output id="react-frame-size">{Math.round(frameSize.height)} px</output>}
+          </div>
           <div id="preview-root" className="pane-body">
             {mounted ? (
               <SafeHtmlPreview
@@ -77,6 +90,8 @@ function App() {
                 source={source}
                 csp={csp}
                 maxBytes={MAX_BYTES}
+                sizing={sizingMode === 'content' ? { mode: 'content', minHeight: 40, maxHeight: 180 } : undefined}
+                onFrameResize={setFrameSize}
                 style={{ height: '100%' }}
                 onOpenExternal={(url) => {
                   window.__events.push(url);

@@ -29,6 +29,7 @@ src/sanitize.browser.ts Browser DOMPurify sanitizer entry
 src/sanitize-core.ts   Shared sanitizer policy and reporting hooks
 src/policy.ts          CSP, sandbox, and external URL policies
 src/bridge.ts          Injected iframe bridge script
+src/sizing.ts          Optional content sizing normalization and policy validation
 src/document.ts        Node document assembly pipeline
 src/document.browser.ts Browser document assembly pipeline
 src/renderer-core.ts   Shared renderer factory (iframe lifecycle, bridge, nav)
@@ -114,7 +115,7 @@ The Playground is a repository tool, not a published runtime API. It runs agains
 - an original/sanitized comparison with removed tokens highlighted;
 - input byte-size and limit visibility;
 - a copyable JSON inspection report;
-- a shareable URL that encodes the input + preset.
+- a shareable URL that encodes the input, preset, and sizing settings.
 
 Run it with:
 

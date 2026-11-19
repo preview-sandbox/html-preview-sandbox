@@ -7,7 +7,13 @@ phase the public API may change between minor versions.
 
 ## [Unreleased]
 
-## [0.3.2] - 2026-11-16
+### Added
+
+- Opt-in iframe height that follows rendered HTML, with configurable bounds,
+  an applied-size callback, React support, and a runnable example.
+  Fill mode remains the default.
+
+## [0.3.2] - 2026-11-19
 
 ### Security
 

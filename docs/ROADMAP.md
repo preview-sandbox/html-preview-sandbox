@@ -1,23 +1,20 @@
 # Roadmap
 
-`v0.3.1` is published to npm. It keeps the `v0.3.0` core runtime API unchanged,
-hardens the Electron integration example, adds a real-process Electron release
-test, and documents the verified test matrix and remaining coverage boundaries.
-This document tracks what's landed and what's still ahead.
+`v0.3.2` is the current npm release. This document tracks what's landed and
+what's still ahead.
 
 ## v0.3.1 Release Closure
 
 Closed on 2026-09-29:
 
-- npm `latest` points to `0.3.1`; the public tarball exposes 38 expected files
+- npm `latest` pointed to `0.3.1` at release; the public tarball exposes 38 expected files
   (170.1 kB compressed) with npm provenance and registry integrity metadata;
 - a clean public-registry install successfully imported the Node and browser
   entrypoints;
 - GitHub tag and Release `v0.3.1` point to release commit `b593e89`;
 - release CI and the hosted Playground deployment completed successfully;
-- `main` contains one post-release CI-only commit (`a13fb57`) aligning the
-  toolchain with Electron 43's Node requirement. It does not change the published
-  runtime and is correctly recorded under `Unreleased`.
+- The post-release CI commit `a13fb57` aligned the toolchain with Electron 43's
+  Node requirement; that change shipped with `v0.3.2`.
 
 ## Current State
 
@@ -39,9 +36,9 @@ Implemented:
 - CI, audit script, pack dry-run, and a machine-local performance benchmark;
 - Biome linting and formatting, both gated in CI.
 
-## v0.3.2 Release Candidate: Security And Dependency Maintenance
+## v0.3.2 Release Closure: Security And Dependency Maintenance
 
-This focused patch is prepared before starting `v0.4.0` and does not contain
+Published on 2026-11-19 before starting `v0.4.0`. The patch does not contain
 responsive-sizing API work.
 
 Implemented:
@@ -59,22 +56,24 @@ Implemented:
 with the current Node 20.19+ support contract. General tooling updates that are
 not needed for the security gate belong in a separate maintenance change.
 
-Tag creation, npm publication, and Dependabot PR closure remain pending until
-the final `0.3.2` release gate and GitHub CI pass.
+Release verification:
 
-Local release-candidate verification (2026-11-16):
+- [PR #40](https://github.com/preview-sandbox/html-preview-sandbox/pull/40)
+  and its merge commit passed CI. Tag `v0.3.2` points to `955ce4e`.
+- The first npm publish attempt was rejected. After rotating the registry
+  credential, the [second attempt](https://github.com/preview-sandbox/html-preview-sandbox/actions/runs/44469432480/attempts/2)
+  passed 53 Node tests, 78 Playwright tests across three engines, the Electron
+  and packed-consumer smoke tests, and publication using the same tag.
+- The npm tarball contained 38 files (164.9 kB compressed), excluded
+  `docs/superpowers/`, and has registry integrity and provenance metadata.
+- Once npm `latest` pointed to `0.3.2`, a clean public-registry install
+  imported the Node, browser, and React entrypoints and generated an HTML
+  document with CSP through the Node API. The production audit reported zero
+  known findings at verification time.
+- [PR #41](https://github.com/preview-sandbox/html-preview-sandbox/pull/41)
+  consolidated the remaining routine dependency updates after the release tag.
 
-- a clean `npm ci` completed with zero audit findings;
-- formatting, strict types, lint, 53 Node tests, and the packed-consumer test
-  passed;
-- all 78 Playwright tests passed across Chromium, Firefox, and WebKit;
-- the Electron 43.8.10 real-process smoke test passed;
-- the dry-run tarball contained the expected 38 files, excluded
-  `docs/superpowers/`, and measured 164.7 kB compressed;
-- the machine-local performance and bundle-size benchmark completed without a
-  regression gate failure.
-
-## v0.4.0 Planned: Responsive Content Sizing
+## v0.4.0 In Development: Responsive Content Sizing
 
 The next minor release focuses on opt-in iframe content-height sizing for inline
 previews. The current fill-container behavior remains the default, so existing
